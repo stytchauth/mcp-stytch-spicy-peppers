@@ -44,7 +44,7 @@ export class OKRManagerMCP extends DurableMCP<AuthenticationContext, Env> {
 
     get server() {
         const server = new McpServer({
-            name: 'TODO Service',
+            name: 'OKR Manager',
             version: '1.0.0',
         })
 

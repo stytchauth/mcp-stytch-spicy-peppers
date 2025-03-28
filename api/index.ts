@@ -4,13 +4,13 @@ import {OKRAPI} from "./OKRAPI.ts";
 import {cors} from "hono/cors";
 import {Hono} from "hono";
 
-// Export the TodoMCP class so the Worker runtime can find it
+// Export the OKRManagerMCP class so the Worker runtime can find it
 export {OKRManagerMCP};
 
 export default new Hono<{ Bindings: Env }>()
     .use(cors())
 
-    // Mount the TODO API underneath us
+    // Mount the API underneath us
     .route('/api', OKRAPI)
 
     // Serve the OAuth Authorization Server response for Dynamic Client Registration
