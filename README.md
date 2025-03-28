@@ -1,5 +1,7 @@
 # Workers + Stytch OKR Manager MCP Server
 
+![](./.github/hero.png)
+
 This is a Workers server that composes three functions:
 * A static website built using React and Vite on top of [Worker Assets](https://developers.cloudflare.com/workers/static-assets/)
 * A REST API built using Hono on top of [Workers KV](https://developers.cloudflare.com/kv/) 
@@ -36,7 +38,6 @@ We will also create a set of scopes that our users can grant to third-party appl
 
 4. Navigate to [Roles and Permissions](https://stytch.com/dashboard/rbac?env=test&type=Roles) to create your RBAC policy
 
-   To create this policy:
    1. Create a Resource named `objective` with `create`, `read`, `update`, and `delete` actions
    1. Create a Resource named `key_result` with `create`, `read`, `update`, and `delete` actions
    1. Create a Scope named `read:okrs` that requests `read` access on the `key_result` resource and `read_access` on the `objective` resource
