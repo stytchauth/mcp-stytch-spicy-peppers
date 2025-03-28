@@ -23,7 +23,6 @@ export class OKRManagerMCP extends DurableMCP<AuthenticationContext, Env> {
     // HACKY!
     withRequiredScope = <T extends CallableFunction>(scope: string, fn: T): T => {
         const withRequiredScopeImpl = (...args: unknown[]) => {
-            console.log(this.props.claims, scope, 'xxxx')
             if (!this.props.claims.scope.split(' ').includes(scope)) {
                 throw new Error(`Caller does not have access to required scope ${scope}`)
             }
@@ -38,7 +37,7 @@ export class OKRManagerMCP extends DurableMCP<AuthenticationContext, Env> {
         return {
             content: [{
                 type: "text",
-                text: `Success! ${description}\n\nNew state:\n${JSON.stringify(newState, null, 2)}`
+                text: `Success! ${description}\n\nNew state:\n${JSON.stringify(newState, null, 2)}\n\nFor Organization:\n${this.props.claims['https://stytch.com/organization'].organization_id}`
             }]
         };
     }
