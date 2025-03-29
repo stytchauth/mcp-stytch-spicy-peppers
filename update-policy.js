@@ -85,11 +85,10 @@ const policy = {
 
 program
   .description('Make an authenticated PUT request')
-  .requiredOption('--key-id <keyId>', 'Management API Key ID for authentication')
-  .requiredOption('--secret <secret>', 'Management API Secret for authentication')
+  .requiredOption('--key-id <keyId>', 'Management API Key ID')
+  .requiredOption('--secret <secret>', 'Management API Secret')
   .requiredOption('--project-id <projectId>', 'Project ID you are updating')
   .parse(process.argv);
-
 const options = program.opts();
 const rbac_url = `https://management.stytch.com/v1/projects/${options.projectId}/rbac_policy`;
 const body = {
@@ -99,14 +98,12 @@ const body = {
 
 async function makePutRequest() {
   try {
-    // Create Basic Auth header
     const credentials = Buffer.from(`${options.keyId}:${options.secret}`).toString('base64');
     const headers = {
       'Authorization': `Basic ${credentials}`,
       'Content-Type': 'application/json'
     };
 
-    // Make the request with the policy object
     const response = await fetch(rbac_url, {
       method: 'PUT',
       headers,
@@ -117,10 +114,10 @@ async function makePutRequest() {
     
     if (!response.ok) {
       console.error('Error Response:', responseText);
-      throw new Error(`HTTP error! status: ${response.status}`);
+      throw new Error(`HTTP Error! status: ${response.status}`);
     }
 
-    console.log(`Success! Status code: ${response.status}`);
+    console.log(`Success! status code: ${response.status}`);
     console.log(`Response: ${responseText}`);
 
   } catch (error) {
