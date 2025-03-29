@@ -79,12 +79,12 @@ export class OKRManagerMCP extends DurableMCP<AuthenticationContext, Env> {
             return this.formatResponse('Objectives retrieved successfully', result);
         }))
 
-        server.tool('addObjective', 'Add a new top-level objective for the organization', {objectiveText: z.string()}, this.withRequiredScope('manage:okrs', async ({objectiveText}) => {
+        server.tool('addObjective', 'Add a new top-level objective for the organization', {objectiveText: z.string()}, this.withRequiredScope('manage:objectives', async ({objectiveText}) => {
             const result = await this.okrService.addObjective(objectiveText)
             return this.formatResponse('Objective added successfully', result);
         }))
 
-        server.tool('deleteObjective', 'Remove an existing top-level objective from the organization', {okrID: z.string()}, this.withRequiredScope('manage:okrs', async ({okrID}) => {
+        server.tool('deleteObjective', 'Remove an existing top-level objective from the organization', {okrID: z.string()}, this.withRequiredScope('manage:objectives', async ({okrID}) => {
             const result = await this.okrService.deleteObjective(okrID);
             return this.formatResponse('Objective deleted successfully', result);
         }));

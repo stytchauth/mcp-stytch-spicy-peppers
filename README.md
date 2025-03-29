@@ -25,7 +25,7 @@ At the end we will have:
 We will also create a set of scopes that our users can grant to third-party applications. In order for a user to grant a scope to an application, they must have all of the permissions that scope encompasses. For example  
 - The `read:okrs` scope requests only `read` access on resources, and is grantable by all members
 - The `manage:krs` scope requests write access to the `key_results` resource, and is grantable by members with the `manager` or `stytch_admin` role, but not members with the `stytch_user` role
-- The `manage:okrs` scope requests write access to the `objectives` and `key_results` resources, and is only grantable by members with the `stytch_admin` role
+- The `manage:objectives` scope requests write access to the `objectives`, and is only grantable by members with the `stytch_admin` role
 
 
 ### In the Stytch Dashboard
