@@ -33,6 +33,48 @@ const policy = {
             ]
         }
     ],
+    "custom_scopes": [
+        {
+            "scope": "manage:objectives",
+            "permissions": [
+                {
+                    "resource_id": "objective",
+                    "actions": ["*"]
+                }
+            ]
+        },
+        {
+            "scope": "manage:kr",
+            "permissions": [
+                {
+                    "resource_id": "key_result",
+                    "actions": ["*"]
+                }
+            ]
+        },
+        {
+            "scope": "read:okrs",
+            "permissions": [
+                {
+                    "resource_id": "key_result",
+                    "actions": ["read"]
+                },
+                {
+                    "resource_id": "objective",
+                    "actions": ["read"]
+                }
+            ]
+        },
+        {
+            "scope": "report_kr_status",
+            "permissions": [
+                {
+                    "resource_id": "key_result",
+                    "actions": ["read", "update"]
+                }
+            ]
+        },
+    ],
     "stytch_member": {
         "role_id": "stytch_member",
         "description": "Granted to all Members upon creation; grants permissions already implicitly granted to logged in Members via the SDK. Cannot be deleted.",
