@@ -96,9 +96,9 @@ export function Login() {
  */
 export const Authorize = withLoginRequired(function () {
     const [initialized, setInitialized] = useState(false)
-    // HACK! MCP doesn't support "scope discovery"
-    // so there are no custom scopes being requested
-    // we need to fake them
+    // Important! The Model Context Procol doesn't yet define "scope discovery" so there are no custom scopes being requested
+    // This is an open part of the specification and will likely change in the future
+    // In the meantime, we will fake the scopes being requested
     useEffect(() => {
         const url = new URL(window.location.href);
         url.searchParams.set('scope', 'openid email profile read:okrs manage:okrs manage:krs report_kr_status');

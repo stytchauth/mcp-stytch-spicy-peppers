@@ -23,7 +23,8 @@ export type RBACParams = {
 }
 /**
  * stytchAuthMiddleware is a Hono middleware that validates that the user is logged in
- * It checks for the stytch_session_jwt cookie set by the Stytch FE SDK
+ * It checks for the stytch_session_jwt cookie set by the Stytch FE SDK and verifies that the
+ * caller has permission to access the specified resource and action within the tenant
  */
 export const stytchSessionAuthMiddleware = ({resource_id, action}: RBACParams) => createMiddleware<{
     Variables: {
@@ -35,10 +36,16 @@ export const stytchSessionAuthMiddleware = ({resource_id, action}: RBACParams) =
     const sessionCookie = getCookie(c, 'stytch_session_jwt') ?? '';
 
     try {
+        // First: Authenticate the Stytch Session JWT and get the caller's request context
         const authRes = await getClient(c.env).sessions.authenticateJwt({
             session_jwt: sessionCookie,
         })
-        // TODO: Make OrgID optional so we don't need to double tap the authz
+
+        // Next: Now that hwe have the organization ID we can check that the caller has permission
+        // to interact with the supplied resource and action within the org ID
+        // Depending on how your API exposes IDs, this is an important step to protect against IDOR vulnerabilities
+        // Read the RBAC Guide for more information:
+        // https://stytch.com/docs/b2b/guides/rbac/backend
         await getClient(c.env).sessions.authenticateJwt({
             session_jwt: sessionCookie,
             authorization_check: {organization_id: authRes.member_session.organization_id, resource_id, action}
@@ -81,6 +88,11 @@ export const stytchBearerTokenAuthMiddleware = createMiddleware<{
     await next()
 })
 
+/**
+ * stytchRBACEnforcement validates that the caller has permission to access the specified resource and action within the tenant
+ * Unlike with REST APIs, MCP APIs are stateful and long-lasting, so authorization needs to be checked on each tool call
+ * Instead of during the initial processing of the request
+ */
 export async function stytchRBACEnforcement(env: Env, ctx: AuthenticationContext, params: RBACParams): Promise<void> {
     await getClient(env).idp.introspectTokenLocal(ctx.accessToken, {
         authorization_check: {
