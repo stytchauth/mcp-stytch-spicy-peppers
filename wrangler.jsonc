@@ -4,8 +4,9 @@
  */
 {
 	"$schema": "node_modules/wrangler/config-schema.json",
-	"name": "mcp-stytch-consumer-todo-list",
+	"name": "mcp-stytch-b2b-okr-manager",
 	"main": "api/index.ts",
+	"compatibility_flags": ["nodejs_compat"],
 	"compatibility_date": "2025-03-19",
 	"observability": {
 		"enabled": true
@@ -27,32 +28,32 @@
 	"migrations": [
 		{
 			"tag": "v1",
-			"new_classes": [
-				"TodoMCP"
+			"new_sqlite_classes": [
+				"OKRManagerMCP"
 			]
 		}
 	],
 	"durable_objects": {
 		"bindings": [
 			{
-				"class_name": "TodoMCP",
+				"class_name": "OKRManagerMCP",
 				"name": "MCP_OBJECT"
 			}
 		]
 	},
 	"kv_namespaces": [
 		{
-			"binding": "TODOS",
-			"id": "<YOUR_TODO_KV_NAMESPACE_ID>"
+			"binding": "OKRManagerKV",
+			"id": "26df2c5e962a4de78ee4fcaf25fd35ef"
 		}
 	],
 	/**
 	 * Environment Variables
 	 * https://developers.cloudflare.com/workers/wrangler/configuration/#environment-variables
 	 */
-	"vars": {
-		"STYTCH_PROJECT_ID": "<YOUR_PROJECT_ID_FROM_STYTCH_DASHBOARD>"
-	},
+	/**
+	 * "vars": {},
+	 */
 	/**
 	 * Note: Use secrets to store sensitive data.
 	 * https://developers.cloudflare.com/workers/configuration/secrets/

@@ -3,6 +3,7 @@ import {z} from 'zod'
 import {okrService} from "./OKRService.ts";
 import {AuthenticationContext, Objective} from "../types";
 import {McpAgent} from "agents/mcp";
+import {RBACParams, stytchRBACEnforcement} from "./lib/auth.ts";
 
 
 /**
@@ -14,21 +15,16 @@ export class OKRManagerMCP extends McpAgent<Env, unknown, AuthenticationContext>
     }
 
     get okrService() {
-        console.log('Binding service to tenant', this.props.claims['https://stytch.com/organization'].organization_id);
-        return okrService(this.env, this.props.claims['https://stytch.com/organization'].organization_id)
+        console.log('Binding service to tenant', this.props.organizationID);
+        return okrService(this.env, this.props.organizationID)
     }
 
-    // withRequiredScope checks that the authentication context contains the scope requested for the specific function
-    // TODO: This should function at the Permission level, not the Scope level
-    // HACKY!
-    withRequiredScope = <T extends CallableFunction>(scope: string, fn: T): T => {
-        const withRequiredScopeImpl = (...args: unknown[]) => {
-            if (!this.props.claims.scope.split(' ').includes(scope)) {
-                throw new Error(`Caller does not have access to required scope ${scope}`)
-            }
+    withRequiredPermissions = <T extends CallableFunction>(rbacParams: RBACParams, fn: T): T => {
+        const withRequiredPermissionsImpl = async (...args: unknown[]) => {
+            await stytchRBACEnforcement(this.env, this.props, rbacParams)
             return fn(...args)
         }
-        return withRequiredScopeImpl as unknown as T
+        return withRequiredPermissionsImpl as unknown as T
     }
 
     formatResponse = (description: string, newState: Objective[]): {
@@ -37,7 +33,7 @@ export class OKRManagerMCP extends McpAgent<Env, unknown, AuthenticationContext>
         return {
             content: [{
                 type: "text",
-                text: `Success! ${description}\n\nNew state:\n${JSON.stringify(newState, null, 2)}\n\nFor Organization:\n${this.props.claims['https://stytch.com/organization'].organization_id}`
+                text: `Success! ${description}\n\nNew state:\n${JSON.stringify(newState, null, 2)}\n\nFor Organization:\n${this.props.organizationID}`
             }]
         };
     }
@@ -74,45 +70,60 @@ export class OKRManagerMCP extends McpAgent<Env, unknown, AuthenticationContext>
         //     },
         // )
 
-        server.tool('listObjectives', 'View all objectives and key results for the organization', this.withRequiredScope('read:okrs', async () => {
-            const result = await this.okrService.get()
-            return this.formatResponse('Objectives retrieved successfully', result);
-        }))
+        server.tool('listObjectives', 'View all objectives and key results for the organization',
+            this.withRequiredPermissions({action: 'read', resource_id: 'objective'}, async () => {
+                const result = await this.okrService.get()
+                return this.formatResponse('Objectives retrieved successfully', result);
+            }))
 
-        server.tool('addObjective', 'Add a new top-level objective for the organization', {objectiveText: z.string()}, this.withRequiredScope('manage:okrs', async ({objectiveText}) => {
-            const result = await this.okrService.addObjective(objectiveText)
-            return this.formatResponse('Objective added successfully', result);
-        }))
+        const addObjectiveSchema = {
+            objectiveText: z.string(),
+        }
+        server.tool('addObjective', 'Add a new top-level objective for the organization', addObjectiveSchema,
+            this.withRequiredPermissions({action: 'create', resource_id: 'objective'}, async (req) => {
+                const result = await this.okrService.addObjective(req.objectiveText)
+                return this.formatResponse('Objective added successfully', result);
+            }))
 
-        server.tool('deleteObjective', 'Remove an existing top-level objective from the organization', {okrID: z.string()}, this.withRequiredScope('manage:okrs', async ({okrID}) => {
-            const result = await this.okrService.deleteObjective(okrID);
-            return this.formatResponse('Objective deleted successfully', result);
-        }));
+        const deleteObjectiveSchema = {
+            okrID: z.string()
+        }
+        server.tool('deleteObjective', 'Remove an existing top-level objective from the organization', deleteObjectiveSchema,
+            this.withRequiredPermissions({action: 'delete', resource_id: 'objective'}, async (req) => {
+                const result = await this.okrService.deleteObjective(req.okrID);
+                return this.formatResponse('Objective deleted successfully', result);
+            }));
 
-        server.tool('addKeyResult', 'Add a new key result to a specific objective', {
+        const addKeyResultSchema = {
             okrID: z.string(),
             keyResultText: z.string()
-        }, this.withRequiredScope('manage:krs', async ({okrID, keyResultText}) => {
-            const result = await this.okrService.addKeyResult(okrID, keyResultText);
-            return this.formatResponse('Key result added successfully', result);
-        }));
+        }
+        server.tool('addKeyResult', 'Add a new key result to a specific objective', addKeyResultSchema,
+            this.withRequiredPermissions({action: 'create', resource_id: 'key_result'}, async (req) => {
+                const result = await this.okrService.addKeyResult(req.okrID, req.keyResultText);
+                return this.formatResponse('Key result added successfully', result);
+            }));
 
-        server.tool('setKeyResultAttainment', 'Set the attainment value for a specific key result in a specific objective', {
+        const setKeyResultAttainmentSchema = {
             okrID: z.string(),
             keyResultID: z.string(),
             attainment: z.number().int().min(0).max(100)
-        }, this.withRequiredScope('report_kr_status', async ({okrID, keyResultID, attainment}) => {
-            const result = await this.okrService.setKeyResultAttainment(okrID, keyResultID, attainment);
-            return this.formatResponse('Key result attainment set successfully', result);
-        }));
+        }
+        server.tool('setKeyResultAttainment', 'Set the attainment value for a specific key result in a specific objective', setKeyResultAttainmentSchema,
+            this.withRequiredPermissions({action: 'update', resource_id: 'key_result'}, async (req) => {
+                const result = await this.okrService.setKeyResultAttainment(req.okrID, req.keyResultID, req.attainment);
+                return this.formatResponse('Key result attainment set successfully', result);
+            }));
 
-        server.tool('deleteKeyResult', 'Remove a key result from a specific objective', {
+        const deleteKeyResultSchema = {
             okrID: z.string(),
             keyResultID: z.string()
-        }, this.withRequiredScope('manage:krs', async ({okrID, keyResultID}) => {
-            const result = await this.okrService.deleteKeyResult(okrID, keyResultID);
-            return this.formatResponse('Key result deleted successfully', result);
-        }));
+        };
+        server.tool('deleteKeyResult', 'Remove a key result from a specific objective', deleteKeyResultSchema,
+            this.withRequiredPermissions({action: 'delete', resource_id: 'key_result'}, async (req) => {
+                const result = await this.okrService.deleteKeyResult(req.okrID, req.keyResultID);
+                return this.formatResponse('Key result deleted successfully', result);
+            }));
 
         return server
     }
