@@ -1,4 +1,4 @@
-import {McpServer} from '@modelcontextprotocol/sdk/server/mcp.js'
+import {McpServer, ResourceTemplate} from '@modelcontextprotocol/sdk/server/mcp.js'
 import {z} from 'zod'
 import {okrService} from "./OKRService.ts";
 import {AuthenticationContext, Objective} from "../types";
@@ -44,31 +44,62 @@ export class OKRManagerMCP extends McpAgent<Env, unknown, AuthenticationContext>
             version: '1.0.0',
         })
 
-        // server.resource("Todos", new ResourceTemplate("todoapp://todos/{id}", {
-        //         list: async () => {
-        //             const todos = await this.todoService.get()
-        //
-        //             return {
-        //                 resources: todos.map(todo => ({
-        //                     name: todo.text,
-        //                     uri: `todoapp://todos/${todo.id}`
-        //                 }))
-        //             }
-        //         }
-        //     }),
-        //     async (uri, {id}) => {
-        //         const todos = await this.todoService.get();
-        //         const todo = todos.find(todo => todo.id === id);
-        //         return {
-        //             contents: [
-        //                 {
-        //                     uri: uri.href,
-        //                     text: todo ? `text: ${todo.text} completed: ${todo.completed}` : 'NOT FOUND',
-        //                 },
-        //             ],
-        //         }
-        //     },
-        // )
+        server.resource("Objectives", new ResourceTemplate("okrmanager://objectives/{id}", {
+                list: this.withRequiredPermissions({resource_id: 'objective', action: 'read'},
+                    async () => {
+                        const objectives = await this.okrService.get()
+
+                        return {
+                            resources: objectives.map(objective => ({
+                                name: objective.objectiveText,
+                                uri: `okrmanager://objectives/${objective.id}`
+                            }))
+                        }
+                    })
+            }),
+            this.withRequiredPermissions({resource_id: 'objective', action: 'read'},
+                async (uri, {id}) => {
+                    const objectives = await this.okrService.get();
+                    const objective = objectives.find(objective => objective.id === id);
+                    return {
+                        contents: [
+                            {
+                                uri: uri.href,
+                                text: JSON.stringify(objective, null, 2),
+                            },
+                        ],
+                    }
+                }),
+        )
+
+        server.resource("Key Result", new ResourceTemplate("okrmanager://key_result/{id}", {
+                list: this.withRequiredPermissions({resource_id: 'key_result', action: 'read'},
+                    async () => {
+                        const objectives = await this.okrService.get()
+
+                        return {
+                            resources: objectives.flatMap(objective => objective.keyResults.map(keyResult => ({
+                                name: keyResult.text,
+                                uri: `okrmanager://key_result/${keyResult.id}`
+                            })))
+                        }
+                    })
+            }),
+            this.withRequiredPermissions({resource_id: 'key_result', action: 'read'},
+                async (uri, {id}) => {
+                    const objectives = await this.okrService.get();
+                    const keyResults = objectives.flatMap(objective => objective.keyResults)
+                    const keyResult = keyResults.find(keyResult => keyResult.id === id);
+                    return {
+                        contents: [
+                            {
+                                uri: uri.href,
+                                text: JSON.stringify(keyResult, null, 2),
+                            },
+                        ],
+                    }
+                }),
+        )
 
         server.tool('listObjectives', 'View all objectives and key results for the organization',
             this.withRequiredPermissions({action: 'read', resource_id: 'objective'}, async () => {
