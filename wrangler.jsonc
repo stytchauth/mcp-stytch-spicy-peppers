@@ -4,7 +4,7 @@
  */
 {
 	"$schema": "node_modules/wrangler/config-schema.json",
-	"name": "mcp-stytch-consumer-todo-list",
+	"name": "mcp-stytch-b2b-okr-manager",
 	"main": "api/index.ts",
 	"compatibility_date": "2025-03-19",
 	"observability": {
@@ -28,21 +28,21 @@
 		{
 			"tag": "v1",
 			"new_classes": [
-				"TodoMCP"
+				"OKRManagerMCP"
 			]
 		}
 	],
 	"durable_objects": {
 		"bindings": [
 			{
-				"class_name": "TodoMCP",
+				"class_name": "OKRManagerMCP",
 				"name": "MCP_OBJECT"
 			}
 		]
 	},
 	"kv_namespaces": [
 		{
-			"binding": "TODOS",
+			"binding": "OKRManagerKV",
 			"id": "<YOUR_TODO_KV_NAMESPACE_ID>"
 		}
 	],
