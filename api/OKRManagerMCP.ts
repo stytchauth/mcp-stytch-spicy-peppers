@@ -1,15 +1,15 @@
 import {McpServer} from '@modelcontextprotocol/sdk/server/mcp.js'
 import {z} from 'zod'
-import {DurableMCP} from "./lib/MCPEntrypoint.ts";
 import {okrService} from "./OKRService.ts";
 import {AuthenticationContext, Objective} from "../types";
+import {McpAgent} from "agents/mcp";
 
 
 /**
  * The `OKRManagerMCP` class exposes the OKR Manager Service via the Model Context Protocol
  * for consumption by API Agents
  */
-export class OKRManagerMCP extends DurableMCP<AuthenticationContext, Env> {
+export class OKRManagerMCP extends McpAgent<Env, unknown, AuthenticationContext> {
     async init() {
     }
 
