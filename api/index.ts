@@ -33,7 +33,7 @@ export default new Hono<{ Bindings: Env }>()
 
     // Let the MCP Server have a go at handling the request
     .use('/sse/*', stytchBearerTokenAuthMiddleware)
-    .route('/sse', OKRManagerMCP.mount())
+    .route('/sse', new Hono().mount('/', OKRManagerMCP.mount('/sse').fetch))
 
     // Finally - serve static assets from Vite
     .mount('/', (req, env) => env.ASSETS.fetch(req))

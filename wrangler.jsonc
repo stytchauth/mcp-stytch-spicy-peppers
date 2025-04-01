@@ -6,6 +6,7 @@
 	"$schema": "node_modules/wrangler/config-schema.json",
 	"name": "mcp-stytch-b2b-okr-manager",
 	"main": "api/index.ts",
+	"compatibility_flags": ["nodejs_compat"],
 	"compatibility_date": "2025-03-19",
 	"observability": {
 		"enabled": true
@@ -27,7 +28,7 @@
 	"migrations": [
 		{
 			"tag": "v1",
-			"new_classes": [
+			"new_sqlite_classes": [
 				"OKRManagerMCP"
 			]
 		}
@@ -50,9 +51,9 @@
 	 * Environment Variables
 	 * https://developers.cloudflare.com/workers/wrangler/configuration/#environment-variables
 	 */
-	"vars": {
-		"STYTCH_PROJECT_ID": "<YOUR_PROJECT_ID_FROM_STYTCH_DASHBOARD>"
-	},
+	/**
+	 * "vars": {},
+	 */
 	/**
 	 * Note: Use secrets to store sensitive data.
 	 * https://developers.cloudflare.com/workers/configuration/secrets/

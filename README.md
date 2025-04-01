@@ -63,18 +63,18 @@ cp .env.template .env.local
 VITE_STYTCH_PUBLIC_TOKEN=public-token-test-abc123-abcde-1234-0987-0000-abcd1234
 ```
 
-4. Update your Stytch RBAC Policy by running the following command, using the workspace management `Key ID` and `Secret` you created earlier, and the `Project ID` found on [Project Settings](https://stytch.com/dashboard/project-settings). You can view and edit the created RBAC Roles, Resources and Scopes in [Roles & Permissions](https://stytch.com/dashboard/rbac).
+
+4. Open `.dev.vars` in the text editor of your choice, and set the environment variables using the `Project ID` and `Secret`  found on [Project Settings](https://stytch.com/dashboard/project-settings?env=test).
+```
+// This is what a completed .dev.vars file will look like
+STYTCH_PROJECT_ID=project-test-6c20cd16-73d5-44f7-852c-9a7e7b2ccf62
+STYTCH_PROJECT_SECRET=secret-test-.....
+```
+
+5. Update your Stytch RBAC Policy by running the following command, using the workspace management `Key ID` and `Secret` you created earlier, and the `Project ID` found on [Project Settings](https://stytch.com/dashboard/project-settings). You can view and edit the created RBAC Roles, Resources and Scopes in [Roles & Permissions](https://stytch.com/dashboard/rbac).
 ```
 // Using example credentials, replace with your own
 npm run update-policy -- --key-id "workspace-key-prod-4881b817-6336-410a-a953-6eceabaf5xc9" --secret "6ZcNGH7v9Oxxxxxxxxxx" --project-id "project-test-6c20cd16-73d5-44f7-852c-9a7e7b2ccf62"
-```
-
-5. Open `wranger.jsonc` in the text editor of your choice, and set `vars.STYTCH_PROJECT_ID` using the `Project ID` from above.
-```
-// This is what a completed wrangler.jsonc will look like
-"vars": {
-   "STYTCH_PROJECT_ID": "project-test-6c20cd16-73d5-44f7-852c-9a7e7b2ccf62"
-},
 ```
 
 6. Create a KV namespace for the OKR Manager app to use
@@ -109,16 +109,40 @@ npx @modelcontextprotocol/inspector@latest
 ```
 
 ##  Deploy to Cloudflare Workers
+Click the button - **you'll need to configure environment variables after the initial deployment**.
 
-1. Deploy the worker
+[![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/stytchauth/mcp-stytch-b2b-okr-manager.git)
 
+Or, if you want to follow the steps by hand:
+
+1. Create a KV namespace for the OKR Manager app to use
+```
+wrangler kv:namespace create OKRManagerKV
+```
+
+2. Update the KV namespace ID in `wrangler.jsonc` with the ID you received:
+```
+"kv_namespaces": [
+   {
+      "binding": "OKRManagerKV",
+      "id": "your-kv-namespace-id"
+   }
+]
+```
+
+3. Upload your Stytch Project ID and Secret Env Vars for use by the worker
+```bash
+npx wrangler secret bulk .dev.vars
+```
+
+4. Deploy the worker
 ```
 npm run deploy
 ```
 
-2. Grant your deployment access to your Stytch project. Assuming your Stytch project was deployed at `https://mcp-stytch-b2b-okr-manager.$YOUR_ACCOUNT_NAME.workers.dev`:
-   1. Add `https://mcp-stytch-b2b-okr-manager.$YOUR_ACCOUNT_NAME.workers.dev/authenticate` as an allowed [Redirect URL](https://stytch.com/dashboard/redirect-urls)
-   2. Add `https://mcp-stytch-b2b-okr-manager.$YOUR_ACCOUNT_NAME.workers.dev` as an allowed Authorized Application in the [Frontend SDKs](https://stytch.com/dashboard/sdk-configuration) configuration
+5. Grant your deployment access to your Stytch project. Assuming your Stytch project was deployed at `https://mcp-stytch-b2b-okr-manager.$YOUR_ACCOUNT_NAME.workers.dev`:
+   1. Add `https://mcp-stytch-b2b-okr-manager.$YOUR_ACCOUNT_NAME.workers.dev/authenticate` as an allowed [Redirect URL](https://stytch.com/dashboard/redirect-urls?env=test)
+   2. Add `https://mcp-stytch-b2b-okr-manager.$YOUR_ACCOUNT_NAME.workers.dev` as an allowed Authorized Application in the [Frontend SDKs](https://stytch.com/dashboard/sdk-configuration?env=test) configuration
 
 ## Get help and join the community
 
