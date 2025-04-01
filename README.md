@@ -128,13 +128,19 @@ wrangler kv:namespace create OKRManagerKV
 ]
 ```
 
-3. Deploy the worker
+3. Upload your Stytch Project ID and Secret Env Vars for use by the worker
+
+```bash
+npx wrangler secret bulk .dev.vars
+```
+
+4. Deploy the worker
 
 ```
 npm run deploy
 ```
 
-4. Grant your deployment access to your Stytch project. Assuming your Stytch project was deployed at `https://mcp-stytch-b2b-okr-manager.$YOUR_ACCOUNT_NAME.workers.dev`:
+5. Grant your deployment access to your Stytch project. Assuming your Stytch project was deployed at `https://mcp-stytch-b2b-okr-manager.$YOUR_ACCOUNT_NAME.workers.dev`:
    1. Add `https://mcp-stytch-b2b-okr-manager.$YOUR_ACCOUNT_NAME.workers.dev/authenticate` as an allowed [Redirect URL](https://stytch.com/dashboard/redirect-urls?env=test)
    2. Add `https://mcp-stytch-b2b-okr-manager.$YOUR_ACCOUNT_NAME.workers.dev` as an allowed Authorized Application in the [Frontend SDKs](https://stytch.com/dashboard/sdk-configuration?env=test) configuration
 
