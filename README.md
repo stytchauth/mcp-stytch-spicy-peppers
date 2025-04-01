@@ -105,6 +105,12 @@ npx @modelcontextprotocol/inspector@latest
 
 ##  Deploy to Cloudflare Workers
 
+Click the button - **you'll need to configure environment variables after the initial deployment**.
+
+[![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/stytchauth/mcp-stytch-b2b-okr-manager.git)
+
+Or, if you want to follow the steps by hand:
+
 1. Create a KV namespace for the OKR Manager app to use
 
 ```
