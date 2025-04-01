@@ -10,7 +10,7 @@ export default function Setup({children}: { children: ReactNode }) {
                 </h1>
                 <p>
                     Full setup instructions are available in the{' '}
-                    <a href="https://github.com/stytchauth/mcp-stytch-consumer-todo-list">README</a>.
+                    <a href="https://github.com/stytchauth/mcp-stytch-b2b-okr-manager">README</a>.
                     Make sure you have configured the following:
                     <ul>
                         <li><code>VITE_STYTCH_PUBLIC_TOKEN</code> in your <code>.env.local</code></li>
