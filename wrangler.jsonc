@@ -44,7 +44,7 @@
 	"kv_namespaces": [
 		{
 			"binding": "OKRManagerKV",
-			"id": "26df2c5e962a4de78ee4fcaf25fd35ef"
+			"id": "<YOUR_TODO_KV_NAMESPACE_ID>"
 		}
 	],
 	/**
