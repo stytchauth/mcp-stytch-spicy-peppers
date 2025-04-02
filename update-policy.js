@@ -152,7 +152,7 @@ async function makePutRequest() {
       body: JSON.stringify(body)
     });
 
-    const responseText = await response.text();
+    const responseText = await response.json();
     
     if (!response.ok) {
       console.error('Error Response:', responseText);
