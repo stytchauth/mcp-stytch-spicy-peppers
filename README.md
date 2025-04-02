@@ -50,11 +50,13 @@ cd mcp-stytch-b2b-okr-manager
 npm i
 ```
 
+
 2. Create an `.env.local` file by running the command below which copies the contents of `.env.template`.
 
 ```bash
 cp .env.template .env.local
 ```
+
 
 3. Open `.env.local` in the text editor of your choice, and set the environment variables using the `public_token` found on [Project Settings](https://stytch.com/dashboard/project-settings?env=test).
 
@@ -71,27 +73,13 @@ STYTCH_PROJECT_ID=project-test-6c20cd16-73d5-44f7-852c-9a7e7b2ccf62
 STYTCH_PROJECT_SECRET=secret-test-.....
 ```
 
+
 5. Update your Stytch RBAC Policy by running the following command, using the workspace management `Key ID` and `Secret` you created earlier, and the `Project ID` found on [Project Settings](https://stytch.com/dashboard/project-settings). You can view and edit the created RBAC Roles, Resources and Scopes in [Roles & Permissions](https://stytch.com/dashboard/rbac).
 ```
 // Using example credentials, replace with your own
 npm run update-policy -- --key-id "workspace-key-prod-4881b817-6336-410a-a953-6eceabaf5xc9" --secret "6ZcNGH7v9Oxxxxxxxxxx" --project-id "project-test-6c20cd16-73d5-44f7-852c-9a7e7b2ccf62"
 ```
 
-6. Create a KV namespace for the OKR Manager app to use
-```
-npx wrangler kv namespace create OKRManagerKV
-```
-
-7. Update the KV namespace ID in `wrangler.jsonc` with the ID you received:
-
-```
-"kv_namespaces": [
-   {
-      "binding": "OKRManagerKV",
-      "id": "your-kv-namespace-id"
-   }
-]
-```
 
 ## Running locally
 
@@ -108,6 +96,13 @@ Test your MCP server using the [MCP Inspector](https://modelcontextprotocol.io/d
 npx @modelcontextprotocol/inspector@latest
 ```
 
+Navigate to the URL where the Inspector is running, and input the following values:
+- Transport Type: `SSE`
+- URL: `http://localhost:3000/sse`
+
+Click Connect to test the authorization flow and interacting with the Objectives and Key Results via your MCP Server!
+
+
 ##  Deploy to Cloudflare Workers
 Click the button - **you'll need to configure environment variables after the initial deployment**.
 
@@ -117,7 +112,7 @@ Or, if you want to follow the steps by hand:
 
 1. Create a KV namespace for the OKR Manager app to use
 ```
-wrangler kv:namespace create OKRManagerKV
+npx wrangler kv namespace create OKRManagerKV
 ```
 
 2. Update the KV namespace ID in `wrangler.jsonc` with the ID you received:
