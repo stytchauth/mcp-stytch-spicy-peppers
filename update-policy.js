@@ -44,7 +44,7 @@ const policy = {
             ]
         },
         {
-            "scope": "manage:kr",
+            "scope": "manage:krs",
             "permissions": [
                 {
                     "resource_id": "key_result",
