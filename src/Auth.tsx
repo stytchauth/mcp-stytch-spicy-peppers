@@ -137,8 +137,8 @@ export const Authorize = withLoginRequired(function () {
             header: `Access your Key Results`,
             items: filtered([
                 scopes.includes('read:okrs') ? 'Read your Organization\'s Key Results' : null,
-                scopes.includes('manage:kr') ? 'Create new Key Results' : null,
-                scopes.includes('manage:kr') ? 'Delete existing Key Results' : null,
+                scopes.includes('manage:krs') ? 'Create new Key Results' : null,
+                scopes.includes('manage:krs') ? 'Delete existing Key Results' : null,
                 scopes.includes('report_kr_status') ? 'Update the progress of achieving Key Results' : null,
             ]),
         }
