@@ -95,8 +95,12 @@ Test your MCP server using the [MCP Inspector](https://modelcontextprotocol.io/d
 ```bash
 npx @modelcontextprotocol/inspector@latest
 ```
-Navigate to the URL where the Inspector is running, update the Transport Method and URL and click `Connect` to see in action!
-![](./.github/inspector-setup.png)
+
+Navigate to the URL where the Inspector is running, and input the following values:
+- Transport Type: `SSE`
+- URL: `http://localhost:3000/sse`
+
+Click Connect to test the authorization flow and interacting with the Objectives and Key Results via your MCP Server!
 
 
 ##  Deploy to Cloudflare Workers
