@@ -101,7 +101,7 @@ export const Authorize = withLoginRequired(function () {
     // In the meantime, we will fake the scopes being requested
     useEffect(() => {
         const url = new URL(window.location.href);
-        url.searchParams.set('scope', 'openid email profile read:okrs manage:okrs manage:krs report_kr_status');
+        url.searchParams.set('scope', 'openid email profile read:okrs manage:objectives manage:krs report_kr_status');
         window.history.pushState(null, '', url.toString());
         setInitialized(true)
     }, []);

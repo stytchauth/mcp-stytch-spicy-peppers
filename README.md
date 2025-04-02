@@ -20,40 +20,29 @@ We will be creating a complex RBAC policy with 3 personas that interacts with bo
 At the end we will have:
 - A `stytch_admin` role with universal access to all resources within an organization. They will have control over `objectives`, `key_results`, and all predefined Stytch resources like members, authentication settings, and SSO configuration.
 - A `manager` role with partial access to most resources - they may invite new members and manage `key_results`, but cannot set top-level company `objectives`
-- A `stytch_user` role with limited access to most resources - they may view `objectives` and update their progress on achieving `key_results`
+- A `stytch_member` role with limited access to most resources - they may view `objectives` and update their progress on achieving `key_results`
 
 We will also create a set of scopes that our users can grant to third-party applications. In order for a user to grant a scope to an application, they must have all of the permissions that scope encompasses. For example  
 - The `read:okrs` scope requests only `read` access on resources, and is grantable by all members
 - The `manage:krs` scope requests write access to the `key_results` resource, and is grantable by members with the `manager` or `stytch_admin` role, but not members with the `stytch_user` role
-- The `manage:okrs` scope requests write access to the `objectives` and `key_results` resources, and is only grantable by members with the `stytch_admin` role
+- The `manage:objectives` scope requests write access to the `objectives`, and is only grantable by members with the `stytch_admin` role
 
 
 ### In the Stytch Dashboard
 
 1. Create a [Stytch](https://stytch.com/) account. Within the sign up flow select **B2B Authentication** as the authentication type you are interested in. Once your account is set up a Project called "My first project" will be automatically created for you.
 
-2. Navigate to [Frontend SDKs](https://stytch.com/dashboard/sdk-configuration?env=test) to enable the Frontend SDK in Test
+2. Navigate to [Frontend SDKs](https://stytch.com/dashboard/sdk-configuration) to enable the Frontend SDK in Test
 
-3. Navigate to [Connected Apps](https://stytch.com/dashboard/connected-apps?env=test) to enable Dynamic Client Registration
+3. Navigate to [Connected Apps](https://stytch.com/dashboard/connected-apps) to enable Dynamic Client Registration
 
-4. Navigate to [Roles and Permissions](https://stytch.com/dashboard/rbac?env=test&type=Roles) to create your RBAC policy
+4. Navigate to [Project Settings](https://stytch.com/dashboard/project-settings) to view your Project ID and API keys. You will need these values later.
 
-   1. Create a Resource named `objective` with `create`, `read`, `update`, and `delete` actions
-   1. Create a Resource named `key_result` with `create`, `read`, `update`, and `delete` actions
-   1. Create a Scope named `read:okrs` that requests `read` access on the `key_result` resource and `read_access` on the `objective` resource
-   1. Create a Scope named `manage:okrs` that requests `*` access on the `key_result` resource and `*` on the `objective` resource
-   1. Create a Scope named `manage:okrs` that requests `*` access on the `key_result` resource and `*` on the `objective` resource
-   1. Create a Scope named `manage:krs` that requests `*` access on the `key_result` resource
-   1. Create a Scope named `report_kr_status` that requests `update` access on the `key_result` resource
-   1. Create a Role named `manager`. Grant it `*` access on the `key_result` resource, and `create`, `read`, and `search` access on the `stytch.member` resource
-   1. Grant the existing `stytch_member` role `read` access to the `objective` resource and `read` and `update` access to the `key_result` resource
-   1. Grant the existing `stytch_admin` role `*` access to the `objective` resource and `*` access to the `key_result` resource
-
-5. Navigate to [Project Settings](https://stytch.com/dashboard/project-settings?env=test) to view your Project ID and API keys. You will need these values later.
+5. Navigate to [Management API](https://stytch.com/dashboard/settings/management-api) and create a new workspace management key. Copy the Key ID and Secret, you will need these values later.
 
 ### On your machine
 
-In your terminal clone the project and install dependencies:
+1. In your terminal, clone the project and install dependencies:
 
 ```bash
 git clone https://github.com/stytchauth/mcp-stytch-b2b-okr-manager.git
@@ -61,31 +50,47 @@ cd mcp-stytch-b2b-okr-manager
 npm i
 ```
 
-Next, create an `.env.local` file by running the command below which copies the contents of `.env.template`.
+2. Create an `.env.local` file by running the command below which copies the contents of `.env.template`.
 
 ```bash
 cp .env.template .env.local
 ```
 
-Open `.env.local` in the text editor of your choice, and set the environment variables using the `public_token` found on [Project Settings](https://stytch.com/dashboard/project-settings?env=test).
+3. Open `.env.local` in the text editor of your choice, and set the environment variables using the `public_token` found on [Project Settings](https://stytch.com/dashboard/project-settings?env=test).
 
 ```
 # This is what a completed .env.local file will look like
 VITE_STYTCH_PUBLIC_TOKEN=public-token-test-abc123-abcde-1234-0987-0000-abcd1234
 ```
 
-Create a `.dev.local` file by running the command below which copies the contents of `.dev.vars.template`
 
-```bash
-cp .dev.vars.template .dev.vars
-```
-
-Open `.dev.vars` in the text editor of your choice, and set the environment variables using the `Project ID` and `Secret`  found on [Project Settings](https://stytch.com/dashboard/project-settings?env=test).
-
+4. Open `.dev.vars` in the text editor of your choice, and set the environment variables using the `Project ID` and `Secret`  found on [Project Settings](https://stytch.com/dashboard/project-settings?env=test).
 ```
 // This is what a completed .dev.vars file will look like
 STYTCH_PROJECT_ID=project-test-6c20cd16-73d5-44f7-852c-9a7e7b2ccf62
 STYTCH_PROJECT_SECRET=secret-test-.....
+```
+
+5. Update your Stytch RBAC Policy by running the following command, using the workspace management `Key ID` and `Secret` you created earlier, and the `Project ID` found on [Project Settings](https://stytch.com/dashboard/project-settings). You can view and edit the created RBAC Roles, Resources and Scopes in [Roles & Permissions](https://stytch.com/dashboard/rbac).
+```
+// Using example credentials, replace with your own
+npm run update-policy -- --key-id "workspace-key-prod-4881b817-6336-410a-a953-6eceabaf5xc9" --secret "6ZcNGH7v9Oxxxxxxxxxx" --project-id "project-test-6c20cd16-73d5-44f7-852c-9a7e7b2ccf62"
+```
+
+6. Create a KV namespace for the OKR Manager app to use
+```
+npx wrangler kv namespace create OKRManagerKV
+```
+
+7. Update the KV namespace ID in `wrangler.jsonc` with the ID you received:
+
+```
+"kv_namespaces": [
+   {
+      "binding": "OKRManagerKV",
+      "id": "your-kv-namespace-id"
+   }
+]
 ```
 
 ## Running locally
@@ -104,7 +109,6 @@ npx @modelcontextprotocol/inspector@latest
 ```
 
 ##  Deploy to Cloudflare Workers
-
 Click the button - **you'll need to configure environment variables after the initial deployment**.
 
 [![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/stytchauth/mcp-stytch-b2b-okr-manager.git)
@@ -112,13 +116,11 @@ Click the button - **you'll need to configure environment variables after the in
 Or, if you want to follow the steps by hand:
 
 1. Create a KV namespace for the OKR Manager app to use
-
 ```
 wrangler kv:namespace create OKRManagerKV
 ```
 
 2. Update the KV namespace ID in `wrangler.jsonc` with the ID you received:
-
 ```
 "kv_namespaces": [
    {
@@ -129,13 +131,11 @@ wrangler kv:namespace create OKRManagerKV
 ```
 
 3. Upload your Stytch Project ID and Secret Env Vars for use by the worker
-
 ```bash
 npx wrangler secret bulk .dev.vars
 ```
 
 4. Deploy the worker
-
 ```
 npm run deploy
 ```
