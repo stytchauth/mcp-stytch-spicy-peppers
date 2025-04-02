@@ -160,7 +160,7 @@ async function makePutRequest() {
     }
 
     console.log(`Success! status code: ${response.status}`);
-    console.log(`Response: ${responseText}`);
+    console.log(`Response: ${JSON.stringify(responseText, null, 2)}`);
 
   } catch (error) {
     console.error('Error making request:', error.message);
