@@ -14,6 +14,7 @@ import {
     AdminPortalSSO
 } from '@stytch/react/b2b/adminPortal';
 import {NavLink, useLocation} from "react-router-dom";
+import {IDPConsentScreenManifest} from "@stytch/vanilla-js/b2b";
 
 /**
  * A higher-order component that enforces a login requirement for the wrapped component.
@@ -96,17 +97,60 @@ export function Login() {
  */
 export const Authorize = withLoginRequired(function () {
     const [initialized, setInitialized] = useState(false)
+    const {member} = useStytchMember()
+
     // Important! The Model Context Procol doesn't yet define "scope discovery" so there are no custom scopes being requested
     // This is an open part of the specification and will likely change in the future
     // In the meantime, we will fake the scopes being requested
     useEffect(() => {
         const url = new URL(window.location.href);
-        url.searchParams.set('scope', 'openid email profile read:okrs manage:okrs manage:krs report_kr_status');
+        url.searchParams.set('scope', 'openid email profile read:okrs manage:objectives manage:kr report_kr_status');
         window.history.pushState(null, '', url.toString());
         setInitialized(true)
     }, []);
 
-    return initialized && <B2BIdentityProvider/>
+    // The text on the Consent screen can be dynamically generated based on the scopes requested
+    // Only scopes that the logged-in member will have permission to grant will be passed in to the generator
+    // Group scopes by Resource, or by Action, or some other way that makes sense for your target audience
+    const consentManifestGenerator = ({scopes}: { scopes: string[]; }): IDPConsentScreenManifest => {
+        const filtered = (s: Array<string | null>): Array<string> => s.filter(Boolean) as Array<string>;
+
+        const profilePermissions = {
+            header: "View your account information",
+            items: filtered([
+                scopes.includes('profile') ? 'Your profile and organization ID' : null,
+                scopes.includes('email') ? `Your email address (${member?.email_address})` : null,
+            ])
+        }
+
+        const objectivePermissions = {
+            header: `Access your Objectives`,
+            items: filtered([
+                scopes.includes('read:okrs') ? 'Read your Organization\'s top secret Objectives' : null,
+                scopes.includes('manage:objectives') ? 'Create new Objectives' : null ,
+                scopes.includes('manage:objectives') ? 'Delete existing Objectives' : null ,
+
+            ]),
+        }
+
+        const keyResultsPermissions = {
+            header: `Access your Key Results`,
+            items: filtered([
+                scopes.includes('read:okrs') ? 'Read your Organization\'s Key Results' : null,
+                scopes.includes('manage:kr') ? 'Create new Key Results' : null,
+                scopes.includes('manage:kr') ? 'Delete existing Key Results' : null,
+                scopes.includes('report_kr_status') ? 'Update the progress of achieving Key Results' : null,
+            ]),
+        }
+
+        return [
+            profilePermissions,
+            objectivePermissions,
+            keyResultsPermissions,
+        ].filter(v => v.items?.length > 0)
+    }
+
+    return initialized && <B2BIdentityProvider getIDPConsentManifest={consentManifestGenerator}/>
 })
 
 type Role = {
