@@ -25,7 +25,7 @@ export default function Setup({children}: { children: ReactNode }) {
                     <div className="error-section">
                         <h2>Required RBAC Policy</h2>
                         <p>
-                            Using your <a href="https://stytch.com/dashboard/settings/management-api">Management API Credentials</a> run the following script:
+                            If you have not done so already, create a <a href="https://stytch.com/dashboard/settings/management-api">Management API Key</a> and run the following:
                         </p>
                         <div className="code-block">
                             <code>npm update-policy.js --project-id $STYTCH_PROJECT_ID --key-id $MANAGEMENT_API_KEY_ID --secret $MANAGEMENT_API_SECRET</code>
