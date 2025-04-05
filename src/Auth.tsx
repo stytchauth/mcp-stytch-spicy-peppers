@@ -69,7 +69,7 @@ const onLoginComplete = () => {
 export function Login() {
     const loginConfig = useMemo<StytchB2BUIConfig>(() => ({
         authFlowType: AuthFlowType.Discovery,
-        products: [B2BProducts.oauth, B2BProducts.emailOtp],
+        products: [B2BProducts.oauth, B2BProducts.sso, B2BProducts.emailOtp],
         sessionOptions: {sessionDurationMinutes: 60},
         oauthOptions: {
             providers: [{type: B2BOAuthProviders.Google}],
@@ -160,7 +160,8 @@ type Role = {
 const adminPortalConfig = {
     allowedAuthMethods: [
         AdminPortalB2BProducts.emailMagicLinks,
-        AdminPortalB2BProducts.oauthGoogle
+        AdminPortalB2BProducts.oauthGoogle,
+        AdminPortalB2BProducts.sso
     ],
     getRoleDescription: (role: Role) => {
         if (role.role_id == 'stytch_admin') {
@@ -195,11 +196,11 @@ const adminPortalStyles = {
 }
 
 export const SSOSettings = withLoginRequired(() => {
-    return (<AdminPortalSSO styles={adminPortalStyles}/>)
+    return (<AdminPortalSSO styles={adminPortalStyles} config={adminPortalConfig}/>)
 })
 
 export const OrgSettings = withLoginRequired(() => {
-    return (<AdminPortalOrgSettings styles={adminPortalStyles}/>)
+    return (<AdminPortalOrgSettings styles={adminPortalStyles} config={adminPortalConfig}/>)
 })
 
 export const MemberSettings = withLoginRequired(() => {
