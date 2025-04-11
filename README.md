@@ -42,11 +42,12 @@ We will also create a set of scopes that our users can grant to third-party appl
 
 ### On your machine
 
-1. In your terminal, clone the project and install dependencies:
+1. In your terminal, clone the project, make sure we're using a minimum supported version of `node`, and install dependencies:
 
 ```bash
 git clone https://github.com/stytchauth/mcp-stytch-b2b-okr-manager.git
 cd mcp-stytch-b2b-okr-manager
+nvm use
 npm i
 ```
 
