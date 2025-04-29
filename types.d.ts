@@ -1,18 +1,16 @@
-export type KeyResult = {
-    id: string;
-    text: string;
-    attainment: number;
+export type Upvote = {
+    memberID: string;
+    memberName: string;
 }
 
-export type Objective = {
+export type Pepper = {
     id: string;
-    objectiveText: string;
-    keyResults: KeyResult[];
+    pepperText: string;
+    upvotes: Upvote[];
 }
 
 export type Permissions = {
-    objective: 'create' | 'read' | 'update' | 'delete';
-    key_result: 'create' | 'read' | 'update' | 'delete';
+    pepper: 'create' | 'read' | 'update' | 'upvote' | 'delete' | 'deleteAll' | 'grantVoteRole' | 'revokeVoteRole';
 };
 
 // Context from the auth process, extracted from the Stytch auth token JWT

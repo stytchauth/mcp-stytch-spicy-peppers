@@ -4,7 +4,7 @@
  */
 {
 	"$schema": "node_modules/wrangler/config-schema.json",
-	"name": "mcp-stytch-b2b-okr-manager",
+	"name": "mcp-stytch-spicy-peppers",
 	"main": "api/index.ts",
 	"compatibility_flags": ["nodejs_compat"],
 	"compatibility_date": "2025-03-19",
@@ -29,21 +29,21 @@
 		{
 			"tag": "v1",
 			"new_sqlite_classes": [
-				"OKRManagerMCP"
+				"PeppersMCP"
 			]
 		}
 	],
 	"durable_objects": {
 		"bindings": [
 			{
-				"class_name": "OKRManagerMCP",
+				"class_name": "PeppersMCP",
 				"name": "MCP_OBJECT"
 			}
 		]
 	},
 	"kv_namespaces": [
 		{
-			"binding": "OKRManagerKV",
+			"binding": "PeppersKV",
 			"id": "<YOUR_TODO_KV_NAMESPACE_ID>"
 		}
 	],

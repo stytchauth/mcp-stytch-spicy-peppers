@@ -6,71 +6,37 @@ import { fetch } from 'undici';
 const policy = {
     "custom_resources": [
         {
-            "resource_id": "objective",
-            "available_actions": ["create", "read", "update", "delete"]
+            "resource_id": "pepper",
+            "available_actions": ["create", "read", "update", "delete", "upvote", "deleteUpvote", "deleteAll"]
         },
-        {
-            "resource_id": "key_result",
-            "available_actions": ["create", "read", "update", "delete"]
-        }
     ],
     "custom_roles": [
         {
-            "role_id": "manager",
+            "role_id": "voter",
             "permissions": [
                 {
-                    "resource_id": "key_result",
-                    "actions": ["*"]
+                    "resource_id": "pepper",
+                    "actions": ["upvote", "deleteUpvote"]
                 },
-                {
-                    "resource_id": "objective",
-                    "actions": ["read"]
-                },
-                {
-                    "resource_id": "stytch.member",
-                    "actions": ["create", "search"]
-                }
             ]
         }
     ],
     "custom_scopes": [
         {
-            "scope": "manage:objectives",
+            "scope": "upvote:pepper",
             "permissions": [
                 {
-                    "resource_id": "objective",
-                    "actions": ["*"]
+                    "resource_id": "pepper",
+                    "actions": ["create", "read", "update", "delete", "upvote", "deleteUpvote"]
                 }
             ]
         },
         {
-            "scope": "manage:krs",
+            "scope": "read:pepper",
             "permissions": [
                 {
-                    "resource_id": "key_result",
-                    "actions": ["*"]
-                }
-            ]
-        },
-        {
-            "scope": "read:okrs",
-            "permissions": [
-                {
-                    "resource_id": "key_result",
+                    "resource_id": "pepper",
                     "actions": ["read"]
-                },
-                {
-                    "resource_id": "objective",
-                    "actions": ["read"]
-                }
-            ]
-        },
-        {
-            "scope": "report_kr_status",
-            "permissions": [
-                {
-                    "resource_id": "key_result",
-                    "actions": ["read", "update"]
                 }
             ]
         },
@@ -84,13 +50,9 @@ const policy = {
                 "actions": ["*"]
             },
             {
-                "resource_id": "objective",
-                "actions": ["read"]
+                "resource_id": "pepper",
+                "actions": ["create", "read", "update", "delete"]
             },
-            {
-                "resource_id": "key_result",
-                "actions": ["read", "update"]
-            }
         ]
     },
     "stytch_admin": {
@@ -114,13 +76,9 @@ const policy = {
                 "actions": ["*"]
             },
             {
-                "resource_id": "objective",
+                "resource_id": "pepper",
                 "actions": ["*"]
             },
-            {
-                "resource_id": "key_result",
-                "actions": ["*"]
-            }
         ]
     }
 };
@@ -132,7 +90,7 @@ program
   .requiredOption('--project-id <projectId>', 'Project ID you are updating')
   .parse(process.argv);
 const options = program.opts();
-const rbac_url = `https://management.stytch.com/v1/projects/${options.projectId}/rbac_policy`;
+const rbac_url = `https://management.mbramlage.dev.stytch.com/v1/projects/${options.projectId}/rbac_policy`;
 const body = {
     "project_id": options.projectId,
     "policy": policy

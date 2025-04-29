@@ -10,7 +10,7 @@ export default function Setup({children}: { children: ReactNode }) {
                 <div className="error-content">
                     <p className="error-intro">
                     Full setup instructions are available in the{' '}
-                        <a href="https://github.com/stytchauth/mcp-stytch-b2b-okr-manager">README</a>.
+                        <a href="https://github.com/stytchauth/mcp-stytch-spicy-peppers">README</a>.
                     </p>
 
                     <div className="error-section">

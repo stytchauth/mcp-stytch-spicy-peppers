@@ -2,10 +2,14 @@ import {BrowserRouter as Router, Route, Routes, Navigate} from 'react-router-dom
 import {StytchB2BProvider} from "@stytch/react/b2b";
 import {StytchB2BUIClient} from "@stytch/vanilla-js/b2b";
 
-import OKREditor from "./OKREditor.tsx";
+import PeppersEditor from "./PeppersEditor.tsx";
 import {Authorize, Login, MemberSettings, Nav, OrgSettings, SSOSettings} from "./Auth.tsx";
 
-const stytch = new StytchB2BUIClient(import.meta.env.VITE_STYTCH_PUBLIC_TOKEN ?? '');
+const stytch = new StytchB2BUIClient(import.meta.env.VITE_STYTCH_PUBLIC_TOKEN ?? '', {
+    endpointOptions: {
+      testApiDomain: import.meta.env.VITE_TEST_API_URL,
+    }
+});
 
 function App() {
     return (
@@ -17,13 +21,13 @@ function App() {
                     <Route path="/oauth/authorize" element={<Authorize/>}/>
                     <Route path="/authenticate" element={<Login/>}/>
 
-                    <Route path="/okrs" element={<OKREditor/>}/>
+                    <Route path="/peppers" element={<PeppersEditor/>}/>
 
                     <Route path="/settings/sso" element={<SSOSettings/>}/>
                     <Route path="/settings/organization" element={<OrgSettings/>}/>
                     <Route path="/settings/members" element={<MemberSettings/>}/>
 
-                    <Route path="*" element={<Navigate to="/okrs"/>}/>
+                    <Route path="*" element={<Navigate to="/peppers"/>}/>
                 </Routes>
             </Router>
         </StytchB2BProvider>

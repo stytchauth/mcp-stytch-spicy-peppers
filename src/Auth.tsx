@@ -50,7 +50,7 @@ export const withLoginRequired = <P extends object>(
  * Behavior:
  * - Checks for a `returnTo` entry in local storage to determine the redirection target.
  * - If `returnTo` exists, clears its value from local storage and navigates to the specified URL.
- * - If `returnTo` does not exist, redirects the user to the default '/okrs' location.
+ * - If `returnTo` does not exist, redirects the user to the default '/peppers' location.
  */
 const onLoginComplete = () => {
     const returnTo = localStorage.getItem('returnTo')
@@ -58,7 +58,7 @@ const onLoginComplete = () => {
         localStorage.setItem('returnTo', '');
         window.location.href = returnTo;
     } else {
-        window.location.href = '/okrs';
+        window.location.href = '/peppers';
     }
 }
 
@@ -85,7 +85,7 @@ export function Login() {
 
     return (
         <>
-            <h1>OKR Manager MCP Demo</h1>
+            <h1>🌶️ Spicy Peppers</h1>
             <StytchB2B config={loginConfig} callbacks={{onEvent: handleOnLoginComplete}}/>
         </>
     )

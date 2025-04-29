@@ -1,17 +1,17 @@
-import {OKRManagerMCP} from "./OKRManagerMCP.ts";
+import {PeppersManagerMCP} from "./PeppersManagerMCP.ts";
 import {getStytchOAuthEndpointUrl, stytchBearerTokenAuthMiddleware} from "./lib/auth";
-import {OKRAPI} from "./OKRAPI.ts";
+import {PeppersAPI} from "./PeppersAPI.ts";
 import {cors} from "hono/cors";
 import {Hono} from "hono";
 
-// Export the OKRManagerMCP class so the Worker runtime can find it
-export {OKRManagerMCP};
+// Export the PeppersManagerMCP class so the Worker runtime can find it
+export {PeppersManagerMCP};
 
 export default new Hono<{ Bindings: Env }>()
     .use(cors())
 
     // Mount the API underneath us
-    .route('/api', OKRAPI)
+    .route('/api', PeppersAPI)
 
     // Serve the OAuth Authorization Server response for Dynamic Client Registration
     .get('/.well-known/oauth-authorization-server', async (c) => {
@@ -33,7 +33,7 @@ export default new Hono<{ Bindings: Env }>()
 
     // Let the MCP Server have a go at handling the request
     .use('/sse/*', stytchBearerTokenAuthMiddleware)
-    .route('/sse', new Hono().mount('/', OKRManagerMCP.mount('/sse').fetch))
+    .route('/sse', new Hono().mount('/', PeppersManagerMCP.mount('/sse').fetch))
 
     // Finally - serve static assets from Vite
     .mount('/', (req, env) => env.ASSETS.fetch(req))
