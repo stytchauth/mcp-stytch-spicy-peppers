@@ -1,10 +1,10 @@
 import {useState, useEffect, FormEvent} from 'react';
 import {hc} from 'hono/client';
-import {useStytchOrganization, withStytchPermissions} from '@stytch/react/b2b';
+import {useStytchOrganization, withStytchPermissions, useStytchB2BClient} from '@stytch/react/b2b';
 import {PeppersApp} from "../api/PeppersAPI.ts";
 import {withLoginRequired} from "./Auth.tsx";
 import {Pepper, Permissions, Upvote} from "../types";
-import {PermissionsMap} from "@stytch/core/public";
+import {PermissionsMap, StytchError} from "@stytch/core/public";
 import {NavLink} from "react-router-dom";
 import {CircleHelp, Pen, PlusCircle, TrashIcon} from "lucide-react";
 import {Modal} from "./components/modal.tsx";
@@ -37,7 +37,45 @@ const upvotePepper = (id: string) =>
         .then(res => res.json())
         .then(res => res.peppers);
 
+type MemberProps = {
+    memberID: string;
+}
+const DisplayedMember = ({memberID}: MemberProps) => {
+    const stytch = useStytchB2BClient();
+    const [memberDisplayName, setMemberDisplayName] = useState<string>('');
 
+    useEffect(() => {
+      const getMemberDisplayName = async () => {
+        if (!memberID) {
+            setMemberDisplayName("Anonymous");
+            return;
+        }
+        try {
+          const members = await stytch.organization.members.search({
+            query: {
+              operands: [
+                {
+                  filter_name: "member_ids",
+                  filter_value: [memberID],
+                },
+              ],
+              operator: "AND",
+            },
+          });
+          console.log(members);
+          setMemberDisplayName(members.members[0].email_address);
+        } catch (error) {
+          console.error(error);
+          setMemberDisplayName("Unknown Member");
+        }
+      };
+      getMemberDisplayName();
+    }, []);
+
+    return (
+        <div>{memberDisplayName}</div>
+    )
+}
 
 type PepperProps = {
     pepper: Pepper;
@@ -50,22 +88,31 @@ const PepperEditor = ({pepper, index, stytchPermissions, setPeppers}: PepperProp
     const [upvotes, setUpvotes] = useState<Upvote[]>([]);
 
     const onDeletePepper = (id: string) => {
-        deletePepper(id).then(peppers => setPeppers(peppers));
+        deletePepper(id).then((peppers: Pepper[]) => setPeppers(peppers));
     };
 
     const canDelete = stytchPermissions.pepper.delete;
+    const canUpdate = stytchPermissions.pepper.update;
+
 
     return (
         <li>
             <div className="pepper">
                 <div className="pepper-header">
                     <div>
-                        <b>Spicy Pepper #{index + 1}:</b> {pepper.pepperText}
+                        <b>#{index + 1}:</b> {pepper.pepperText}
+                    </div>
+                </div>
+                <div className="pepper-tail">
+                    <div>
+                        <button disabled={!canDelete} onClick={() => onDeletePepper(pepper.id)}>
+                            <img className="icon" src="/trash.png" alt="Delete" />
+                        </button>
                     </div>
                     <div>
-                        <button disabled={!canDelete} className="text" onClick={() => onDeletePepper(pepper.id)}>
-                            <TrashIcon/>
-                        </button>
+                        <em className="citation">
+                            <DisplayedMember memberID={pepper.creatorID} />
+                        </em>
                     </div>
                 </div>
             </div>
@@ -92,7 +139,6 @@ const PeppersRanking = ({stytchPermissions}: EditorProps) => {
     // Fetch Peppers on component mount
     useEffect(() => {
         if (stytchPermissions.pepper.read) {
-            console.log("Fetching peppers");
             getPeppers().then(peppers => setPeppers(peppers));
         }
     }, [stytchPermissions.pepper.read]);
@@ -104,18 +150,17 @@ const PeppersRanking = ({stytchPermissions}: EditorProps) => {
         setModalOpen(false);
     };
 
-    console.log(stytchPermissions.pepper);
     const canCreate = stytchPermissions.pepper.create;
 
     return (
         <main>
-            <div className="peppersEditor">
+            <div className="peppersRanking">
 
                 <Modal isOpen={modalOpen} onClose={() => setModalOpen(false)}>
                     <form onSubmit={onAddPepper}>
                         <h3>Create a new Spicy Pepper</h3>
                         <p>
-                            What is a high level goal your Organization needs to accomplish?
+                            What is a controversial opinion you have?
                         </p>
                         <div className="input-group">
                             <input
@@ -126,7 +171,7 @@ const PeppersRanking = ({stytchPermissions}: EditorProps) => {
                                 onChange={(e) => setNewPepperText(e.target.value)}
                                 required
                             />
-                            <button type="submit" className="primary">Add Objective</button>
+                            <button type="submit" className="primary">Add Spicy Pepper</button>
                         </div>
                     </form>
                 </Modal>

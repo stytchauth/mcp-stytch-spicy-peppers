@@ -50,6 +50,10 @@ const policy = {
                 "actions": ["*"]
             },
             {
+                "resource_id": "stytch.member",
+                "actions": ["search"]
+            },
+            {
                 "resource_id": "pepper",
                 "actions": ["create", "read", "update", "delete"]
             },

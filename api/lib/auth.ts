@@ -36,7 +36,6 @@ export const stytchSessionAuthMiddleware = (action: RBACAction) => createMiddlew
 
     try {
         // First: Authenticate the Stytch Session JWT and get the caller's request context
-        console.log("Checking cookie")
         const authRes = await getClient(c.env).sessions.authenticateJwt({
             session_jwt: sessionCookie,
         })
@@ -50,6 +49,8 @@ export const stytchSessionAuthMiddleware = (action: RBACAction) => createMiddlew
             session_jwt: sessionCookie,
             authorization_check: {organization_id: authRes.member_session.organization_id, resource_id: "pepper", action}
         })
+        // In order to have a nice display name, we need to get the email address of the member.
+        // This denormalizes this data, but no logic should be used on this field - use the memberID instead.
         c.set('memberID', authRes.member_session.member_id);
         c.set('organizationID', authRes.member_session.organization_id);
     } catch (error) {
@@ -93,11 +94,11 @@ export const stytchBearerTokenAuthMiddleware = createMiddleware<{
  * Unlike with REST APIs, MCP APIs are stateful and long-lasting, so authorization needs to be checked on each tool call
  * Instead of during the initial processing of the request
  */
-export async function stytchRBACEnforcement(env: Env, ctx: AuthenticationContext, action: RBACAction): Promise<void> {
+export async function stytchRBACEnforcement(env: Env, ctx: AuthenticationContext, resource: string, action: RBACAction): Promise<void> {
     await getClient(env).idp.introspectTokenLocal(ctx.accessToken, {
         authorization_check: {
             organization_id: ctx.organizationID,
-            resource_id: "peppers",
+            resource_id: resource,
             action: action,
         }
     });

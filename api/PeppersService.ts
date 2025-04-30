@@ -15,6 +15,7 @@ class PeppersService {
     constructor(
         private env: Env,
         private organizationID: string,
+        private memberID: string
     ) {
     }
 
@@ -46,9 +47,12 @@ class PeppersService {
         const newPepper: Pepper = {
             id: `pepper_${Date.now().toString()}`, //Assume that this will be unique, which in general is not true, but close enough for this use case.
             pepperText: pepperText,
+            creatorID: this.memberID,
+            creatorName: this.memberID,
             upvotes: [],
         }
         peppers.push(newPepper)
+        console.log(newPepper)
         return this.#set(peppers)
     }
 
@@ -96,4 +100,4 @@ class PeppersService {
     
 }
 
-export const peppersService = (env: Env, organizationID: string) => new PeppersService(env, organizationID)
+export const peppersService = (env: Env, organizationID: string, memberID: string) => new PeppersService(env, organizationID, memberID)

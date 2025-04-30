@@ -9,14 +9,14 @@ export const PeppersAPI = new Hono<{ Bindings: Env }>()
 
     .get('/peppers', stytchSessionAuthMiddleware('read'), async (c) => {
         // Get all peppers
-        const peppers = await peppersService(c.env, c.var.organizationID).get()
+        const peppers = await peppersService(c.env, c.var.organizationID, c.var.memberID).get()
         return c.json({peppers});
     })
 
     .post('/peppers', stytchSessionAuthMiddleware('create'), async (c) => {
         // Add a new pepper. Can be called by any authenticated user.
         const newPepper = await c.req.json<{ pepperText: string }>();
-        const peppers = await peppersService(c.env, c.var.organizationID).addPepper(newPepper.pepperText)
+        const peppers = await peppersService(c.env, c.var.organizationID, c.var.memberID).addPepper(newPepper.pepperText)
         return c.json({peppers});
     })
 
@@ -32,8 +32,8 @@ export const PeppersAPI = new Hono<{ Bindings: Env }>()
     .delete('/peppers/:pepperID', stytchSessionAuthMiddleware('delete'), async (c) => {
         // Delete a pepper. Can be called by any authenticated user, but only the creator of the pepper can delete it.
         // Can be called by any admin to delete any pepper.
-        const objectives = await peppersService(c.env, c.var.organizationID).deletePepper(c.req.param().pepperID)
-        return c.json({objectives});
+        const peppers = await peppersService(c.env, c.var.organizationID).deletePepper(c.req.param().pepperID)
+        return c.json({peppers});
     })
 
     .post('/peppers/:pepperID/upvote', stytchSessionAuthMiddleware('upvote'), async (c) => {

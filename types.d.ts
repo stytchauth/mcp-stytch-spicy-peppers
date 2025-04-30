@@ -6,7 +6,15 @@ export type Upvote = {
 export type Pepper = {
     id: string;
     pepperText: string;
+    creatorID: string;
+    creatorName: string;
     upvotes: Upvote[];
+}
+
+export type UserInfo = {
+    id: string;
+    name: string;
+    email: string;
 }
 
 export type Permissions = {
