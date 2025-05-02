@@ -19,7 +19,7 @@ function getClient(env: Env): B2BClient {
     return client
 }
 
-export type RBACAction = 'create' | 'read' | 'updateOwn' | 'deleteOwn' | 'upvote' | 'removeOwnUpvote' | 'deleteAll' | 'grantVoteRole' | 'revokeVoteRole' | 'overrideOwnership'
+export type RBACAction = 'create' | 'read' | 'updateOwn' | 'deleteOwn' | 'upvote' | 'deleteOwnUpvote' | 'deleteAll' | 'grantVoteRole' | 'revokeVoteRole' | 'overrideOwnership'
 
 /**
  * stytchAuthMiddleware is a Hono middleware that validates that the user is logged in
@@ -59,8 +59,12 @@ export const stytchSessionAuthMiddleware = (action: RBACAction) => createMiddlew
         try {
             await getClient(c.env).sessions.authenticateJwt({
                 session_jwt: sessionCookie,
-                authorization_check: {organization_id: authRes.member_session.organization_id, resource_id: "pepper", action: "overrideOwnership"}
-            })
+                authorization_check: {
+                    organization_id: authRes.member_session.organization_id,
+                    resource_id: "pepper",
+                    action: "overrideOwnership",
+                },
+            });
             c.set('canOverrideOwnership', true)
         }
         catch (error) {
@@ -110,6 +114,7 @@ export const stytchBearerTokenAuthMiddleware = createMiddleware<{
         c.executionCtx.props = {
             organizationID: tokenRes.organization.organization_id,
             accessToken,
+            memberID: tokenRes.subject
         }
     } catch (error) {
         console.error(error);
@@ -118,20 +123,63 @@ export const stytchBearerTokenAuthMiddleware = createMiddleware<{
     await next()
 })
 
+export type RBACCheckResult = {
+    canOverrideOwnership: boolean;
+}
+
 /**
  * stytchRBACEnforcement validates that the caller has permission to access the specified resource and action within the tenant
  * Unlike with REST APIs, MCP APIs are stateful and long-lasting, so authorization needs to be checked on each tool call
  * Instead of during the initial processing of the request
  */
-export async function stytchRBACEnforcement(env: Env, ctx: AuthenticationContext, resource: string, action: RBACAction): Promise<void> {
+export async function stytchRBACEnforcement(env: Env, ctx: AuthenticationContext, action: RBACAction): Promise<RBACCheckResult> {
+    // Check basic RBAC action
     await getClient(env).idp.introspectTokenLocal(ctx.accessToken, {
         authorization_check: {
             organization_id: ctx.organizationID,
-            resource_id: resource,
+            resource_id: "pepper",
             action: action,
         }
     });
+
+    // Check overrideOwnership action. An exception is thrown if the user does not have this action, but
+    // this is generally OK. This, too, needs to be checked on every call because this permission can change
+    // during the lifetime of the connection.
+
+    // TODO: I don't love setting this property on the argument ctx; it might be cleaner to return a value
+    // from this function and pass that in to the argument list of the wrapped function.
+    const checkResult: RBACCheckResult = {
+        canOverrideOwnership: false
+    }
+    try {
+        await getClient(env).idp.introspectTokenLocal(ctx.accessToken, {
+            authorization_check: {
+                organization_id: ctx.organizationID,
+                resource_id: "pepper",
+                action: "overrideOwnership",
+            }
+        });
+        checkResult.canOverrideOwnership = true
+    }
+    catch (error) {
+        if ("code" in error) {
+            if (error.code !== "invalid_permissions") {
+                //403 is the expected error if the user doesn't have overrideOwnership.
+                // Anything else is unexpected and should be logged.
+                console.error(error)
+                throw(error)
+            }
+            // Happy path - user doesn't have overrideOwnership, but that's OK.
+            // This is the only error we expect to see here.
+        }
+        else { //Any other error is unexpected and should be rethrown.
+            console.error(error)
+            throw(error)
+        }
+    }
+    return checkResult;
 }
+
 
 export function getStytchOAuthEndpointUrl(env: Env, endpoint: string): string {
     if (import.meta.env.VITE_TEST_API_URL) {

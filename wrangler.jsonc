@@ -29,14 +29,14 @@
 		{
 			"tag": "v1",
 			"new_sqlite_classes": [
-				"PeppersMCP"
+				"PeppersManagerMCP"
 			]
 		}
 	],
 	"durable_objects": {
 		"bindings": [
 			{
-				"class_name": "PeppersMCP",
+				"class_name": "PeppersManagerMCP",
 				"name": "MCP_OBJECT"
 			}
 		]

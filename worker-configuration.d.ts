@@ -3,7 +3,7 @@
 declare namespace Cloudflare {
 	interface Env {
 		PeppersKV: KVNamespace;
-		MCP_OBJECT: DurableObjectNamespace /* PeppersMCP */;
+		MCP_OBJECT: DurableObjectNamespace /* PeppersManagerMCP */;
 		ASSETS: Fetcher;
 	}
 }

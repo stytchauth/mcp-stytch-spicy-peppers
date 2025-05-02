@@ -158,6 +158,7 @@ const PepperEditor = ({pepper, index, stytchPermissions, setPeppers}: PepperProp
                 <div className="pepper-header">
                     <div>
                         <b>#{index + 1}:</b> {pepper.pepperText}
+                        <p>Pepper ID: {pepper.id}</p>
                     </div>
                 </div>
                 <div className="pepper-tail">

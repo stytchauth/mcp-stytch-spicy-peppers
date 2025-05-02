@@ -18,4 +18,6 @@ export type Permissions = {
 type AuthenticationContext = {
     organizationID: string;
     accessToken: string;
+    memberID: string;
+    canOverrideOwnership: boolean;
 }

@@ -104,7 +104,7 @@ export const Authorize = withLoginRequired(function () {
     // In the meantime, we will fake the scopes being requested
     useEffect(() => {
         const url = new URL(window.location.href);
-        url.searchParams.set('scope', 'openid email profile read:okrs manage:objectives manage:krs report_kr_status');
+        url.searchParams.set('scope', 'openid email profile read:pepper write:pepper manage:pepper');
         window.history.pushState(null, '', url.toString());
         setInitialized(true)
     }, []);
@@ -123,30 +123,20 @@ export const Authorize = withLoginRequired(function () {
             ])
         }
 
-        const objectivePermissions = {
-            header: `Access your Objectives`,
+        const pepperPermissions = {
+            header: `Access your organization's Spicy Peppers`,
             items: filtered([
-                scopes.includes('read:okrs') ? 'Read your Organization\'s top secret Objectives' : null,
-                scopes.includes('manage:objectives') ? 'Create new Objectives' : null ,
-                scopes.includes('manage:objectives') ? 'Delete existing Objectives' : null ,
+                scopes.includes('read:pepper') ? 'Read your Organization\'s Spicy Peppers' : null,
+                scopes.includes('write:pepper') ? 'Create, delete, and vote on Spicy Peppers' : null ,
+                scopes.includes('manage:pepper') ? 'Manage others\'s Spicy Peppers' : null ,
 
             ]),
         }
 
-        const keyResultsPermissions = {
-            header: `Access your Key Results`,
-            items: filtered([
-                scopes.includes('read:okrs') ? 'Read your Organization\'s Key Results' : null,
-                scopes.includes('manage:krs') ? 'Create new Key Results' : null,
-                scopes.includes('manage:krs') ? 'Delete existing Key Results' : null,
-                scopes.includes('report_kr_status') ? 'Update the progress of achieving Key Results' : null,
-            ]),
-        }
 
         return [
             profilePermissions,
-            objectivePermissions,
-            keyResultsPermissions,
+            pepperPermissions,
         ].filter(v => v.items?.length > 0)
     }
 

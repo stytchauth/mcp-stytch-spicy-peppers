@@ -11,6 +11,14 @@ const DEFAULT_PEPPERS = [{
     creatorID: '-1',
 }]
 
+export class PepperUneditableError extends Error {
+    constructor(message: string) {
+        super(message);
+        this.name = 'PepperUneditableError';
+        Object.setPrototypeOf(this, PepperUneditableError.prototype);
+    }
+}
+
 /**
  * The `PeppersService` class provides methods for managing a set of "spicy peppers" backed by Cloudflare KV storage.
  * "spicy peppers" are controversial statements that are upvoted by users to find the spiciest of the peppers.
@@ -21,7 +29,6 @@ class PeppersService {
         private env: Env,
         private organizationID: string,
         private memberID: string,
-        private canOverrideOwnership: boolean
     ) {
     }
 
@@ -61,7 +68,9 @@ class PeppersService {
         return this.#set(peppers)
     }
 
-    #getPepperIfEditable = async (pepperID: string): Promise<Pepper | false> => {
+
+
+    #getPepperIfEditable = async (pepperID: string, canOverrideOwnership: boolean): Promise<Pepper | false> => {
         const peppers = await this.get()
         const existingPepper = peppers.find(p => p.id === pepperID)
         if (!existingPepper) {
@@ -70,18 +79,22 @@ class PeppersService {
         }
         // The pepper can be deleted by any user with deleteOwn permissions
         // AND they own the pepper, OR if the user has overrideOwnership permissions.
-        if (existingPepper.creatorID !== this.memberID && !this.canOverrideOwnership) {
-            console.error(`User ${this.memberID} not have permission to delete pepper ${pepperID} created by ${existingPepper.creatorID}`)
-            return false
+        if (existingPepper.creatorID !== this.memberID && !canOverrideOwnership) {
+            console.error(`User ${this.memberID} does not have permission to delete pepper ${pepperID} created by ${existingPepper.creatorID}`)
+            throw new PepperUneditableError(`User ${this.memberID} does not have permission to delete pepper ${pepperID} created by ${existingPepper.creatorID}`)
         }
         return existingPepper
     }
 
-    deletePepper = async (pepperID: string): Promise<Pepper[]> => {
-        const existingPepper = await this.#getPepperIfEditable(pepperID)
+    deletePepper = async (pepperID: string, canOverrideOwnership: boolean): Promise<Pepper[]> => {
+        const peppers = await this.get()
+        console.log("deletePepper", pepperID, canOverrideOwnership)
+        const existingPepper = await this.#getPepperIfEditable(pepperID, canOverrideOwnership)
+        console.log("deletePepper 2", existingPepper)
         if (!existingPepper) {
             return this.get()
         }
+        console.log("deletePepper 3")
         const cleaned = peppers.filter(p => p.id !== existingPepper.id);
         return this.#set(cleaned);
     }
@@ -151,4 +164,4 @@ class PeppersService {
     
 }
 
-export const peppersService = (env: Env, organizationID: string, memberID: string, canOverrideOwnership: boolean) => new PeppersService(env, organizationID, memberID, canOverrideOwnership)
+export const peppersService = (env: Env, organizationID: string, memberID: string) => new PeppersService(env, organizationID, memberID)

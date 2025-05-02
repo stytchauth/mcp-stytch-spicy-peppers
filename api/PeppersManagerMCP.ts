@@ -1,9 +1,9 @@
 import {McpServer, ResourceTemplate} from '@modelcontextprotocol/sdk/server/mcp.js'
 import {z} from 'zod'
-import {peppersService} from "./PeppersService.ts";
+import {peppersService, PepperUneditableError} from "./PeppersService.ts";
 import {AuthenticationContext, Pepper} from "../types";
 import {McpAgent} from "agents/mcp";
-import {RBACAction, stytchRBACEnforcement} from "./lib/auth.ts";
+import {RBACAction, RBACCheckResult, stytchRBACEnforcement} from "./lib/auth.ts";
 
 
 /**
@@ -15,14 +15,14 @@ export class PeppersManagerMCP extends McpAgent<Env, unknown, AuthenticationCont
     }
 
     get peppersService() {
-        console.log('Binding service to tenant', this.props.organizationID);
-        return peppersService(this.env, this.props.organizationID)
+        console.log('Binding service to tenant', this.props.organizationID, this.props.memberID);
+        return peppersService(this.env, this.props.organizationID, this.props.memberID)
     }
 
     withRequiredPermissions = <T extends CallableFunction>(rbacAction: RBACAction, fn: T): T => {
         const withRequiredPermissionsImpl = async (...args: unknown[]) => {
-            await stytchRBACEnforcement(this.env, this.props, rbacAction)
-            return fn(...args)
+            const checkResult = await stytchRBACEnforcement(this.env, this.props, rbacAction)
+            return fn(...args, checkResult)
         }
         return withRequiredPermissionsImpl as unknown as T
     }
@@ -36,6 +36,16 @@ export class PeppersManagerMCP extends McpAgent<Env, unknown, AuthenticationCont
                 text: `Success! ${description}\n\nNew state:\n${JSON.stringify(newState, null, 2)}\n\nFor Organization:\n${this.props.organizationID}`
             }]
         };
+    }
+
+    formatError = (description: string): {
+        isError: boolean,
+        content: Array<{ type: 'text', text: string }>
+    } => {
+        return {
+            isError: true,
+            content: [{type: "text", text: `Error! ${description}`}]
+        }
     }
 
     get server() {
@@ -79,22 +89,30 @@ export class PeppersManagerMCP extends McpAgent<Env, unknown, AuthenticationCont
                 return this.formatResponse('Spicy Peppers retrieved successfully', result);
             }))
 
-        const addObjectiveSchema = {
-            objectiveText: z.string(),
+        const addPepperSchema = {
+            pepperText: z.string(),
         }
-        server.tool('addPepper', 'Add a new top-level objective for the organization', addObjectiveSchema,
+        server.tool('addPepper', 'Add a new spicy pepper for the organization', addPepperSchema,
             this.withRequiredPermissions('create', async (req) => {
-                const result = await this.peppersService.addPepper(req.objectiveText)
+                const result = await this.peppersService.addPepper(req.pepperText)
                 return this.formatResponse('Spicy Pepper added successfully', result);
             }))
 
-        const deleteObjectiveSchema = {
-            okrID: z.string()
+        const deletePepperSchema = {
+            pepperID: z.string()
         }
-        server.tool('deletePeppers', 'Remove an existing top-level objective from the organization', deleteObjectiveSchema,
-            this.withRequiredPermissions('delete', async (req) => {
-                const result = await this.peppersService.deletePepper(req.okrID);
-                return this.formatResponse('Spicy Pepper deleted successfully', result);
+        server.tool('deletePepper', 'Remove an existing spicy pepper from the organization', deletePepperSchema,
+            this.withRequiredPermissions('deleteOwn', async (req, checkResult) => {
+                try {
+                    const result = await this.peppersService.deletePepper(req.pepperID, (checkResult as unknown as RBACCheckResult).canOverrideOwnership);
+                    return this.formatResponse('Spicy Pepper deleted successfully', result);
+                } catch (error) {
+                    if (error instanceof PepperUneditableError) {
+                        return this.formatError(error.message);
+                    } else {
+                        throw error;
+                    }
+                }
             }));
 
         return server

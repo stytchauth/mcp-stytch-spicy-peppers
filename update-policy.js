@@ -32,7 +32,7 @@ const policy = {
     ],
     "custom_scopes": [
         {
-            "scope": "upvote:pepper",
+            "scope": "write:pepper",
             "permissions": [
                 {
                     "resource_id": "pepper",
@@ -46,6 +46,15 @@ const policy = {
                 {
                     "resource_id": "pepper",
                     "actions": ["read"]
+                }
+            ]
+        },
+        {
+            "scope": "manage:pepper",
+            "permissions": [
+                {
+                    "resource_id": "pepper",
+                    "actions": ["overrideOwnership", "resetAll"]
                 }
             ]
         },
