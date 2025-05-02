@@ -3,7 +3,12 @@ import {Pepper} from "../types";
 const DEFAULT_PEPPERS = [{
     id: 'pepper_0',
     pepperText: '"Agents" are just sparkling apps',
-    upvotes: []
+    upvotes: [
+        {
+            memberID: '-1',
+        }
+    ],
+    creatorID: '-1',
 }]
 
 /**
@@ -15,7 +20,8 @@ class PeppersService {
     constructor(
         private env: Env,
         private organizationID: string,
-        private memberID: string
+        private memberID: string,
+        private canOverrideOwnership: boolean
     ) {
     }
 
@@ -48,7 +54,6 @@ class PeppersService {
             id: `pepper_${Date.now().toString()}`, //Assume that this will be unique, which in general is not true, but close enough for this use case.
             pepperText: pepperText,
             creatorID: this.memberID,
-            creatorName: this.memberID,
             upvotes: [],
         }
         peppers.push(newPepper)
@@ -56,27 +61,73 @@ class PeppersService {
         return this.#set(peppers)
     }
 
-    deletePepper = async (pepperID: string): Promise<Pepper[]> => {
+    #getPepperIfEditable = async (pepperID: string): Promise<Pepper | false> => {
         const peppers = await this.get()
-        const cleaned = peppers.filter(p => p.id !== pepperID);
+        const existingPepper = peppers.find(p => p.id === pepperID)
+        if (!existingPepper) {
+            console.error(`Pepper ${pepperID} not found - no pepper deleted`)
+            return false
+        }
+        // The pepper can be deleted by any user with deleteOwn permissions
+        // AND they own the pepper, OR if the user has overrideOwnership permissions.
+        if (existingPepper.creatorID !== this.memberID && !this.canOverrideOwnership) {
+            console.error(`User ${this.memberID} not have permission to delete pepper ${pepperID} created by ${existingPepper.creatorID}`)
+            return false
+        }
+        return existingPepper
+    }
+
+    deletePepper = async (pepperID: string): Promise<Pepper[]> => {
+        const existingPepper = await this.#getPepperIfEditable(pepperID)
+        if (!existingPepper) {
+            return this.get()
+        }
+        const cleaned = peppers.filter(p => p.id !== existingPepper.id);
         return this.#set(cleaned);
     }
 
-    updatePepper = async (pepperID: string, pepperText: string): Promise<Pepper[]> => {
+/*     updatePepper = async (pepperID: string, pepperText: string): Promise<Pepper[]> => {
         const peppers = await this.get()
         const updated = peppers.map(p => p.id === pepperID ? {...p, pepperText} : p);
         return this.#set(updated);
-    }
+     }
+        */
 
     setUpvote = async (pepperID: string): Promise<Pepper[]> => {
         const peppers = await this.get()
-        const updated = peppers.map(p => p.id === pepperID ? {...p, upvotes: [...p.upvotes, {memberID: this.env.STYTCH_MEMBER_ID, memberName: this.env.STYTCH_MEMBER_NAME}]} : p);
+        const updated = peppers.map(p => {
+            if (p.id !== pepperID) {
+                return p
+            }
+            return {
+                ...p,
+                // add the memberID to the upvotes array and then remove duplicates
+                // to ensure there is one and only one upvote for this member after this call,
+                // ensuring idempotency.
+                upvotes: [...p.upvotes, {memberID: this.memberID}].reduce((acc, curr) => {
+                    if (!acc.some(u => u.memberID === curr.memberID)) {
+                        acc.push(curr);
+                    }
+                    return acc;
+                }, [] as {memberID: string}[])
+            }
+        });
         return this.#set(updated);
     }
 
     deleteUpvote = async (pepperID: string): Promise<Pepper[]> => {
         const peppers = await this.get()
-        const updated = peppers.map(p => p.id === pepperID ? {...p, upvotes: p.upvotes.filter(u => u.memberID !== this.env.STYTCH_MEMBER_ID)} : p);
+        const updated = peppers.map(p => {
+            if (p.id !== pepperID) {
+                return p
+            }
+            return {
+                ...p,
+                // filter out the memberID from the upvotes array so that there
+                // will be zero upvotes for this member after this call, ensuring idempotency.
+                upvotes: p.upvotes.filter(u => u.memberID !== this.memberID)
+            }
+        });
         return this.#set(updated);
     }
 
@@ -100,4 +151,4 @@ class PeppersService {
     
 }
 
-export const peppersService = (env: Env, organizationID: string, memberID: string) => new PeppersService(env, organizationID, memberID)
+export const peppersService = (env: Env, organizationID: string, memberID: string, canOverrideOwnership: boolean) => new PeppersService(env, organizationID, memberID, canOverrideOwnership)

@@ -10,7 +10,8 @@
 		"preview": "npm run build && vite preview",
 		"deploy": "npm run build && wrangler deploy",
 		"cf-typegen": "wrangler types",
-		"update-policy": "node update-policy.js"
+		"update-policy": "node update-policy.js",
+    "clean-local": "wrangler kv key delete organization-test-7d7fec7e-6482-4084-ab5f-e04a44aa7334 --local --binding PeppersKV"
 	},
 	"dependencies": {
 		"@modelcontextprotocol/sdk": "^1.7.0",

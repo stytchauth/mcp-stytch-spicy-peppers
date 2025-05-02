@@ -7,16 +7,25 @@ const policy = {
     "custom_resources": [
         {
             "resource_id": "pepper",
-            "available_actions": ["create", "read", "update", "delete", "upvote", "deleteUpvote", "deleteAll"]
+            "available_actions": ["create", "read", "updateOwn", "deleteOwn", "upvote", "deleteOwnUpvote", "resetAll", "overrideOwnership"]
         },
     ],
     "custom_roles": [
         {
-            "role_id": "voter",
+            "role_id": "pepperVoter",
             "permissions": [
                 {
                     "resource_id": "pepper",
-                    "actions": ["upvote", "deleteUpvote"]
+                    "actions": ["upvote", "deleteOwnUpvote"]
+                },
+            ]
+        },
+        {
+            "role_id": "pepperAdmin",
+            "permissions": [
+                {
+                    "resource_id": "pepper",
+                    "actions": ["overrideOwnership", "resetAll"]
                 },
             ]
         }
@@ -27,7 +36,7 @@ const policy = {
             "permissions": [
                 {
                     "resource_id": "pepper",
-                    "actions": ["create", "read", "update", "delete", "upvote", "deleteUpvote"]
+                    "actions": ["create", "read", "updateOwn", "deleteOwn", "upvote", "deleteOwnUpvote"]
                 }
             ]
         },
@@ -55,7 +64,7 @@ const policy = {
             },
             {
                 "resource_id": "pepper",
-                "actions": ["create", "read", "update", "delete"]
+                "actions": ["create", "read", "updateOwn", "deleteOwn", "upvote", "deleteOwnUpvote"]
             },
         ]
     },

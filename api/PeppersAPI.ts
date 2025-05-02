@@ -9,30 +9,30 @@ export const PeppersAPI = new Hono<{ Bindings: Env }>()
 
     .get('/peppers', stytchSessionAuthMiddleware('read'), async (c) => {
         // Get all peppers
-        const peppers = await peppersService(c.env, c.var.organizationID, c.var.memberID).get()
+        const peppers = await peppersService(c.env, c.var.organizationID, c.var.memberID, c.var.canOverrideOwnership).get()
         return c.json({peppers});
     })
 
     .post('/peppers', stytchSessionAuthMiddleware('create'), async (c) => {
         // Add a new pepper. Can be called by any authenticated user.
         const newPepper = await c.req.json<{ pepperText: string }>();
-        const peppers = await peppersService(c.env, c.var.organizationID, c.var.memberID).addPepper(newPepper.pepperText)
+        const peppers = await peppersService(c.env, c.var.organizationID, c.var.memberID, c.var.canOverrideOwnership).addPepper(newPepper.pepperText)
         return c.json({peppers});
     })
 
-    .post('/peppers/:pepperID', stytchSessionAuthMiddleware('update'), async (c) => {
+    .post('/peppers/:pepperID', stytchSessionAuthMiddleware('updateOwn'), async (c) => {
         // Update a pepper. Only pepperText can be updated with this endpoint.
         // Can be called by any authenticated user.
         const newPepperState = await c.req.json<{ pepperText: string }>();
         // Get the existing pepper
-        const peppers = await peppersService(c.env, c.var.organizationID).updatePepper(c.req.param().pepperID, newPepperState.pepperText)
+        const peppers = await peppersService(c.env, c.var.organizationID, c.var.memberID, c.var.canOverrideOwnership).updatePepper(c.req.param().pepperID, newPepperState.pepperText)
         return c.json({peppers});
     })
 
-    .delete('/peppers/:pepperID', stytchSessionAuthMiddleware('delete'), async (c) => {
+    .delete('/peppers/:pepperID', stytchSessionAuthMiddleware('deleteOwn'), async (c) => {
         // Delete a pepper. Can be called by any authenticated user, but only the creator of the pepper can delete it.
         // Can be called by any admin to delete any pepper.
-        const peppers = await peppersService(c.env, c.var.organizationID).deletePepper(c.req.param().pepperID)
+        const peppers = await peppersService(c.env, c.var.organizationID, c.var.memberID, c.var.canOverrideOwnership).deletePepper(c.req.param().pepperID)
         return c.json({peppers});
     })
 
@@ -40,34 +40,34 @@ export const PeppersAPI = new Hono<{ Bindings: Env }>()
         // Upvote a pepper (add the memberID to the upvotes array)
         // Can be called by any authenticated user, but only in the context of their own user.
         // Can be called by any admin to upvote for any user.
-        const peppers = await peppersService(c.env, c.var.organizationID).setUpvote(c.req.param().pepperID)
+        const peppers = await peppersService(c.env, c.var.organizationID, c.var.memberID, c.var.canOverrideOwnership).setUpvote(c.req.param().pepperID)
         return c.json({peppers});
     })
 
-    .delete('/peppers/:pepperID/upvote', stytchSessionAuthMiddleware('deleteUpvote'), async (c) => {
+    .delete('/peppers/:pepperID/upvote', stytchSessionAuthMiddleware('deleteOwnUpvote'), async (c) => {
         // Delete a upvote from a pepper (remove the memberID from the upvotes array)
         // Can be called by any authenticated user, but only in the context of their own user.
         // Can be called by any admin to delete any upvote.
-        const peppers = await peppersService(c.env, c.var.organizationID).deleteUpvote(c.req.param().pepperID)
+        const peppers = await peppersService(c.env, c.var.organizationID, c.var.memberID, c.var.canOverrideOwnership).deleteUpvote(c.req.param().pepperID)
         return c.json({peppers});
     })
 
     .delete('/peppers', stytchSessionAuthMiddleware('deleteAll'), async (c) => {
         // Delete all peppers. Can be called by any admin.
         // This also resets all state in this app (reprovisions it) and resets RBAC for all users.
-        const peppers = await peppersService(c.env, c.var.organizationID).deleteAll()
+        const peppers = await peppersService(c.env, c.var.organizationID, c.var.memberID, c.var.canOverrideOwnership).deleteAll()
         return c.json({peppers});
     })
 
     .post('/rbac/vote/:memberID', stytchSessionAuthMiddleware('grantVoteRole'), async (c) => {
         // Grant vote role to a user. Can be called by any admin.
-        await peppersService(c.env, c.var.organizationID).grantVoteRole(c.req.param().memberID)
+        await peppersService(c.env, c.var.organizationID, c.var.memberID, c.var.canOverrideOwnership).grantVoteRole(c.req.param().memberID)
         return c.json({'success': true});
     })
 
     .delete('/rbac/vote/:memberID', stytchSessionAuthMiddleware('revokeVoteRole'), async (c) => {
         // Revoke vote role from a user. Can be called by any admin.
-        await peppersService(c.env, c.var.organizationID).revokeVoteRole(c.req.param().memberID)
+        await peppersService(c.env, c.var.organizationID, c.var.memberID, c.var.canOverrideOwnership).revokeVoteRole(c.req.param().memberID)
         return c.json({'success': true});
     })
 

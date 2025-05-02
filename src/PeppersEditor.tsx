@@ -1,6 +1,6 @@
 import {useState, useEffect, FormEvent} from 'react';
 import {hc} from 'hono/client';
-import {useStytchOrganization, withStytchPermissions, useStytchB2BClient} from '@stytch/react/b2b';
+import {useStytchOrganization, withStytchPermissions, useStytchB2BClient, useStytchMember} from '@stytch/react/b2b';
 import {PeppersApp} from "../api/PeppersAPI.ts";
 import {withLoginRequired} from "./Auth.tsx";
 import {Pepper, Permissions, Upvote} from "../types";
@@ -29,11 +29,12 @@ const deletePepper = (id: string) =>
         .then(res => res.peppers);
 
 const upvotePepper = (id: string) =>
-    client.peppers[':id'].upvotes.$post({
-        param: {id},
-        // @ts-expect-error RPC inference is not working
-        json: {keyResultText}
-    })
+    client.peppers[':id'].upvote.$post({param: {id}})
+        .then(res => res.json())
+        .then(res => res.peppers);
+
+const deleteUpvote = (id: string) =>
+    client.peppers[':id'].upvote.$delete({param: {id}})
         .then(res => res.json())
         .then(res => res.peppers);
 
@@ -46,6 +47,11 @@ const DisplayedMember = ({memberID}: MemberProps) => {
 
     useEffect(() => {
       const getMemberDisplayName = async () => {
+        console.log(memberID);
+        if (memberID === '-1') {
+            setMemberDisplayName("Stytch Team");
+            return;
+        }
         if (!memberID) {
             setMemberDisplayName("Anonymous");
             return;
@@ -66,7 +72,7 @@ const DisplayedMember = ({memberID}: MemberProps) => {
           setMemberDisplayName(members.members[0].email_address);
         } catch (error) {
           console.error(error);
-          setMemberDisplayName("Unknown Member");
+          setMemberDisplayName("Unknown Member (could not search)");
         }
       };
       getMemberDisplayName();
@@ -74,6 +80,51 @@ const DisplayedMember = ({memberID}: MemberProps) => {
 
     return (
         <div>{memberDisplayName}</div>
+    )
+}
+
+type UpvoteProps = {
+    pepper: Pepper,
+    stytchPermissions: PermissionsMap<Permissions>,
+    setPeppers: React.Dispatch<React.SetStateAction<Pepper[]>>;
+}
+const Upvotes = ({pepper, stytchPermissions, setPeppers}: UpvoteProps) => {
+    const [upvotesList, setUpvotesList] = useState<Upvote[]>(pepper.upvotes);
+    const {member} = useStytchMember();
+
+    const canUpvote = () => {
+        return stytchPermissions.pepper.upvote;
+    }
+
+    const onUpvote = () => {
+        upvotePepper(pepper.id).then((peppers: Pepper[]) => {
+            setPeppers(peppers);
+            setUpvotesList(peppers.find(p => p.id === pepper.id)?.upvotes || []);
+        });
+    }
+
+    const onDeleteUpvote = () => {
+        deleteUpvote(pepper.id).then((peppers: Pepper[]) => {
+            setPeppers(peppers);
+            setUpvotesList(peppers.find(p => p.id === pepper.id)?.upvotes || []);
+        });
+    }
+
+    const toggleUpvote = () => {
+        if (upvotesList.some(upvote => upvote.memberID === member?.member_id)) {
+            onDeleteUpvote();
+        } else {
+            onUpvote();
+        }
+    }
+
+    return (
+        <button disabled={!canUpvote()} onClick={() => toggleUpvote()}>
+            <em>{upvotesList.length}</em>
+            {upvotesList.map((upvote, index) => (
+                <img key={index} className="icon" src="/pepper.png" alt={upvote.memberID} />
+            ))}
+        </button>
     )
 }
 
@@ -85,14 +136,20 @@ type PepperProps = {
 }
 const PepperEditor = ({pepper, index, stytchPermissions, setPeppers}: PepperProps) => {
     const [pepperText, setPepperText] = useState<string>('');
-    const [upvotes, setUpvotes] = useState<Upvote[]>([]);
+    const {member} = useStytchMember();
 
     const onDeletePepper = (id: string) => {
         deletePepper(id).then((peppers: Pepper[]) => setPeppers(peppers));
     };
 
-    const canDelete = stytchPermissions.pepper.delete;
-    const canUpdate = stytchPermissions.pepper.update;
+    const canDelete = () => {
+        return stytchPermissions.pepper.deleteOwn && pepper.creatorID === member?.member_id
+    };
+
+    // Because we're accepting user input, might be a good idea to grant some admins the ability to delete other users' submissions.
+    const canDeleteOthers = () => {
+        return stytchPermissions.pepper.overrideOwnership
+    };
 
 
     return (
@@ -105,7 +162,7 @@ const PepperEditor = ({pepper, index, stytchPermissions, setPeppers}: PepperProp
                 </div>
                 <div className="pepper-tail">
                     <div>
-                        <button disabled={!canDelete} onClick={() => onDeletePepper(pepper.id)}>
+                        <button disabled={!canDelete() && !canDeleteOthers()} className={canDeleteOthers() ? "override" : ""} onClick={() => onDeletePepper(pepper.id)}>
                             <img className="icon" src="/trash.png" alt="Delete" />
                         </button>
                     </div>
@@ -183,13 +240,16 @@ const PeppersRanking = ({stytchPermissions}: EditorProps) => {
                 </h1>
                 <ul>
                     {peppers.map((pepper, i) => (
-                        <PepperEditor
-                            key={pepper.id}
-                            index={i}
-                            pepper={pepper}
-                            stytchPermissions={stytchPermissions}
-                            setPeppers={setPeppers}
-                        />
+                        <div>
+                            <PepperEditor
+                                key={pepper.id}
+                                index={i}
+                                pepper={pepper}
+                                stytchPermissions={stytchPermissions}
+                                setPeppers={setPeppers}
+                            />
+                            <Upvotes pepper={pepper} stytchPermissions={stytchPermissions} setPeppers={setPeppers} />
+                        </div>
                     ))}
                     {peppers.length === 0 && (
                         <li>

@@ -1,7 +1,7 @@
 import {createMiddleware} from "hono/factory";
 import {HTTPException} from "hono/http-exception";
 import {getCookie} from "hono/cookie";
-import {B2BClient} from "stytch";
+import {B2BClient, StytchError} from "stytch";
 import {AuthenticationContext} from "../../types";
 
 
@@ -19,7 +19,8 @@ function getClient(env: Env): B2BClient {
     return client
 }
 
-export type RBACAction = 'create' | 'read' | 'update' | 'delete' | 'upvote' | 'deleteUpvote' | 'deleteAll' | 'grantVoteRole' | 'revokeVoteRole'
+export type RBACAction = 'create' | 'read' | 'updateOwn' | 'deleteOwn' | 'upvote' | 'removeOwnUpvote' | 'deleteAll' | 'grantVoteRole' | 'revokeVoteRole' | 'overrideOwnership'
+
 /**
  * stytchAuthMiddleware is a Hono middleware that validates that the user is logged in
  * It checks for the stytch_session_jwt cookie set by the Stytch FE SDK and verifies that the
@@ -29,6 +30,7 @@ export const stytchSessionAuthMiddleware = (action: RBACAction) => createMiddlew
     Variables: {
         memberID: string,
         organizationID: string,
+        canOverrideOwnership: boolean,
     },
     Bindings: Env,
 }>(async (c, next) => {
@@ -40,7 +42,7 @@ export const stytchSessionAuthMiddleware = (action: RBACAction) => createMiddlew
             session_jwt: sessionCookie,
         })
 
-        // Next: Now that hwe have the organization ID we can check that the caller has permission
+        // Next: Now that we have the organization ID we can check that the caller has broad permissions
         // to interact with the supplied resource and action within the org ID
         // Depending on how your API exposes IDs, this is an important step to protect against IDOR vulnerabilities
         // Read the RBAC Guide for more information:
@@ -49,6 +51,33 @@ export const stytchSessionAuthMiddleware = (action: RBACAction) => createMiddlew
             session_jwt: sessionCookie,
             authorization_check: {organization_id: authRes.member_session.organization_id, resource_id: "pepper", action}
         })
+
+        // Also check if the caller has the overrideOwnership action.
+        // Do this seperately in a sub try/request block - it's completely OK for the user to not have this action,
+        // but for the sake of keeping these auth checks simple, we'll check it in this middleware.
+        c.set('canOverrideOwnership', false)
+        try {
+            await getClient(c.env).sessions.authenticateJwt({
+                session_jwt: sessionCookie,
+                authorization_check: {organization_id: authRes.member_session.organization_id, resource_id: "pepper", action: "overrideOwnership"}
+            })
+            c.set('canOverrideOwnership', true)
+        }
+        catch (error) {
+            if (error instanceof StytchError) {
+                if (error.status_code !== 403) {
+                    //403 is the expected error if the user doesn't have overrideOwnership.
+                    // Anything else is unexpected and should be logged.
+                    console.error(error)
+                    throw(error)
+                }
+            }
+            else { //Any other error is unexpected and should be rethrown.
+                console.error(error)
+                throw(error)
+            }
+        }
+
         // In order to have a nice display name, we need to get the email address of the member.
         // This denormalizes this data, but no logic should be used on this field - use the memberID instead.
         c.set('memberID', authRes.member_session.member_id);
