@@ -10,7 +10,8 @@ export type Pepper = {
 }
 
 export type Permissions = {
-    pepper: 'create' | 'read' | 'updateOwn' | 'deleteOwn' | 'upvote' | 'removeOwnUpvote' | 'deleteAll' | 'grantVoteRole' | 'revokeVoteRole' | 'overrideOwnership';
+    pepper: 'create' | 'read' | 'updateOwn' | 'deleteOwn' | 'upvote' | 'removeOwnUpvote' | 'deleteAll' | 'adminVoteRole' | 'overrideOwnership';
+    'stytch.member': 'update.settings.roles';
 };
 
 // Context from the auth process, extracted from the Stytch auth token JWT

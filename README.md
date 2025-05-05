@@ -14,13 +14,17 @@ If you are more interested in Stytch's [Consumer](https://stytch.com/b2c) produc
 
 ## Set up
 
+* Set the url VITE_TEST_API_URL="https://test.mbramlage.dev.stytch.com" if running in remote
+* 
+
 Follow the steps below to get this application fully functional and running using your own Stytch credentials.
 
-We will be creating a complex RBAC policy with 3 personas that interacts with both Stytch-defined resources and custom resources managed by the application.
+We will be creating a complex RBAC policy with 4 personas that interacts with both Stytch-defined resources and custom resources managed by the application.
 At the end we will have:
-- A `stytch_admin` role with universal access to all resources within an organization. They will have control over `objectives`, `key_results`, and all predefined Stytch resources like members, authentication settings, and SSO configuration.
-- A `manager` role with partial access to most resources - they may invite new members and manage `key_results`, but cannot set top-level company `objectives`
-- A `stytch_member` role with limited access to most resources - they may view `objectives` and update their progress on achieving `key_results`
+- A `stytch_member` role with limited access to most resources - they can create new Spicy Peppers, but not (yet) upvote them. This role can also only modify (e.g. delete) their own Spicy Peppers
+- A `pepperVoter` role which will allow upvoting of Spicy Peppers. Upvotes can be given at most once per user.
+- A `pepperManager` role that can override the user based rules (e.g. can delete other users' Spicy Peppers)
+- A `stytch_admin` role with universal access to all resources within an organization. They will have control over Spicy Peppers and also user management in Stytch.
 
 We will also create a set of scopes that our users can grant to third-party applications. In order for a user to grant a scope to an application, they must have all of the permissions that scope encompasses. For example  
 - The `read:okrs` scope requests only `read` access on resources, and is grantable by all members

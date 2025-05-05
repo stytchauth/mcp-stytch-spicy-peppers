@@ -161,9 +161,10 @@ export async function stytchRBACEnforcement(env: Env, ctx: AuthenticationContext
         });
         checkResult.canOverrideOwnership = true
     }
-    catch (error) {
-        if ("code" in error) {
-            if (error.code !== "invalid_permissions") {
+    catch (error: unknown) {
+        const stytchError = error as { code?: string };
+        if (stytchError.code) {
+            if (stytchError.code !== "invalid_permissions") {
                 //403 is the expected error if the user doesn't have overrideOwnership.
                 // Anything else is unexpected and should be logged.
                 console.error(error)

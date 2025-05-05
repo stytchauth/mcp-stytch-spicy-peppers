@@ -6,15 +6,15 @@ import {
     StytchEvent,
 } from "@stytch/vanilla-js";
 import {useEffect, useMemo, useState} from "react";
-import {useStytchB2BClient, useStytchMember, StytchB2B, B2BIdentityProvider} from "@stytch/react/b2b";
+import {useStytchB2BClient, useStytchMember, StytchB2B, B2BIdentityProvider, withStytchPermissions} from "@stytch/react/b2b";
 import {
     AdminPortalB2BProducts,
     AdminPortalMemberManagement,
-    AdminPortalOrgSettings,
-    AdminPortalSSO
 } from '@stytch/react/b2b/adminPortal';
 import {NavLink, useLocation} from "react-router-dom";
 import {IDPConsentScreenManifest} from "@stytch/vanilla-js/b2b";
+import {Permissions} from "../types";
+import {MemberRole, PermissionsMap} from "@stytch/core/public";
 
 /**
  * A higher-order component that enforces a login requirement for the wrapped component.
@@ -69,7 +69,7 @@ const onLoginComplete = () => {
 export function Login() {
     const loginConfig = useMemo<StytchB2BUIConfig>(() => ({
         authFlowType: AuthFlowType.Discovery,
-        products: [B2BProducts.oauth, B2BProducts.sso, B2BProducts.emailOtp],
+        products: [B2BProducts.emailOtp],
         sessionOptions: {sessionDurationMinutes: 60},
         oauthOptions: {
             providers: [{type: B2BOAuthProviders.Google}],
@@ -150,27 +150,30 @@ type Role = {
 const adminPortalConfig = {
     allowedAuthMethods: [
         AdminPortalB2BProducts.emailMagicLinks,
-        AdminPortalB2BProducts.oauthGoogle,
-        AdminPortalB2BProducts.sso
     ],
     getRoleDescription: (role: Role) => {
         if (role.role_id == 'stytch_admin') {
-            return 'The Big Cheese. Full access. Unlimited power.'
-        } else if (role.role_id == 'manager') {
-            return 'Defines Key Results for Employees to implement.'
+            return 'Full access.'
+        } else if (role.role_id == 'pepperAdmin') {
+            return 'Can manage Spicy Pepper submissions (e.g. delete others\' submissions).'
+        } else if (role.role_id == 'pepperVoter') {
+            return 'Can vote on Spicy Peppers.'
         } else if (role.role_id == 'stytch_member') {
-            return 'Gives status reports.'
+            return 'Can submit new Spicy Peppers.'
         } else {
             return role.description;
         }
     },
     getRoleDisplayName: (role: Role) => {
         if (role.role_id == 'stytch_admin') {
-            return 'CEO'
-        } else if (role.role_id == 'manager') {
-            return 'Manager'
+            return 'Admin'
+        }
+        else if (role.role_id == 'pepperAdmin') {
+            return 'Peppers manager'
+        } else if (role.role_id == 'pepperVoter') {
+            return 'Voter'
         } else if (role.role_id == 'stytch_member') {
-            return 'Employee'
+            return 'Submitter'
         } else {
             return role.role_id
         }
@@ -185,16 +188,63 @@ const adminPortalStyles = {
     }
 }
 
-export const SSOSettings = withLoginRequired(() => {
-    return (<AdminPortalSSO styles={adminPortalStyles} config={adminPortalConfig}/>)
-})
+type VoteGrantProps = {
+    stytchPermissions: PermissionsMap<Permissions>;
+};
+export const GrantVoteRole = withLoginRequired(withStytchPermissions<Permissions, object>(
+    ({stytchPermissions}: VoteGrantProps) => {
 
-export const OrgSettings = withLoginRequired(() => {
-    return (<AdminPortalOrgSettings styles={adminPortalStyles} config={adminPortalConfig}/>)
-})
+        const stytch = useStytchB2BClient();
+        const canAdminVoteRole = () => {
+            return stytchPermissions['stytch.member']['update.settings.roles'];
+        };
+
+        const onGrantVoteRole = async () => {
+            const members_result = await stytch.organization.members.search({}); // Get all non-deleted members
+            for (const member of members_result.members) {
+                const new_roles = member.roles.reduce((acc: string[], role) => {
+                    if (role.role_id !== "stytch_member") { // Filter out any default roles - which in this case is stytch_member
+                        acc.push(role.role_id); 
+                    }
+                    return acc;
+                }, []);
+                await stytch.organization.members.update({
+                    member_id: member.member_id,
+                    roles: [...new_roles, 'pepperVoter'],
+                })
+            }
+        }
+
+        const onRemoveVoteRole = async () => {
+            const members_result = await stytch.organization.members.search({}); // Get all non-deleted members
+            for (const member of members_result.members) {
+                const new_roles = member.roles.filter(role => role.role_id !== 'pepperVoter' && role.role_id !== 'stytch_member')
+                await stytch.organization.members.update({
+                    member_id: member.member_id,
+                    roles: new_roles.map(role => role.role_id),
+                })
+            }
+        }
+        return (
+            <div>
+                <h2>Grant / Remove Pepper Voting Role</h2>
+                <button disabled={!canAdminVoteRole()} onClick={() => onGrantVoteRole()}>
+                    <img className="icon" src="/pepper.png" alt="Grant pepper voting to all users" />
+                </button>
+                <button disabled={!canAdminVoteRole()} onClick={() => onRemoveVoteRole()}>
+                    <img className="icon" src="/trash.png" alt="Remove pepper voting from all users" />
+                </button>
+            </div>
+        )
+}))
 
 export const MemberSettings = withLoginRequired(() => {
-    return (<AdminPortalMemberManagement styles={adminPortalStyles} config={adminPortalConfig}/>)
+    return (
+        <div>
+            <GrantVoteRole/>
+            <AdminPortalMemberManagement styles={adminPortalStyles} config={adminPortalConfig}/>
+        </div>
+    )
 })
 
 export const Nav = () => {
@@ -206,15 +256,8 @@ export const Nav = () => {
 
     return (
         <nav>
-            <NavLink className={location.pathname === "/okrs" ? "active" : ""} to="/okrs">
-                OKR Editor
-            </NavLink>
-            <NavLink className={location.pathname === "/settings/sso" ? "active" : ""} to="/settings/sso">
-                SSO Configuration
-            </NavLink>
-            <NavLink className={location.pathname === "/settings/organization" ? "active" : ""}
-                     to="/settings/organization">
-                Organization Settings
+            <NavLink className={location.pathname === "/peppers" ? "active" : ""} to="/peppers">
+                Spicy Peppers
             </NavLink>
             <NavLink className={location.pathname === "/settings/members" ? "active" : ""} to="/settings/members">
                 Member Management

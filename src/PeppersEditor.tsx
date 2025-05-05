@@ -24,17 +24,17 @@ const createPepper = (pepperText: string) =>
         .then(res => res.peppers);
 
 const deletePepper = (id: string) =>
-    client.peppers[':id'].$delete({param: {id}})
+    client.peppers[':pepperID'].$delete({param: {pepperID: id}})
         .then(res => res.json())
         .then(res => res.peppers);
 
-const upvotePepper = (id: string) =>
-    client.peppers[':id'].upvote.$post({param: {id}})
+const upvotePepper = (pepperID: string) =>
+    client.peppers[':pepperID'].upvote.$post({param: {pepperID}})
         .then(res => res.json())
         .then(res => res.peppers);
 
-const deleteUpvote = (id: string) =>
-    client.peppers[':id'].upvote.$delete({param: {id}})
+    const deleteUpvote = (pepperID: string) =>
+    client.peppers[':pepperID'].upvote.$delete({param: {pepperID}})
         .then(res => res.json())
         .then(res => res.peppers);
 
@@ -76,7 +76,7 @@ const DisplayedMember = ({memberID}: MemberProps) => {
         }
       };
       getMemberDisplayName();
-    }, []);
+    }, [memberID, stytch.organization.members]);
 
     return (
         <div>{memberDisplayName}</div>
@@ -135,7 +135,6 @@ type PepperProps = {
     setPeppers: React.Dispatch<React.SetStateAction<Pepper[]>>;
 }
 const PepperEditor = ({pepper, index, stytchPermissions, setPeppers}: PepperProps) => {
-    const [pepperText, setPepperText] = useState<string>('');
     const {member} = useStytchMember();
 
     const onDeletePepper = (id: string) => {
