@@ -33,8 +33,13 @@ const upvotePepper = (pepperID: string) =>
         .then(res => res.json())
         .then(res => res.peppers);
 
-    const deleteUpvote = (pepperID: string) =>
+const deleteUpvote = (pepperID: string) =>
     client.peppers[':pepperID'].upvote.$delete({param: {pepperID}})
+        .then(res => res.json())
+        .then(res => res.peppers);
+
+const deleteAllPeppers = () =>
+    client.peppers.$delete()
         .then(res => res.json())
         .then(res => res.peppers);
 
@@ -47,7 +52,6 @@ const DisplayedMember = ({memberID}: MemberProps) => {
 
     useEffect(() => {
       const getMemberDisplayName = async () => {
-        console.log(memberID);
         if (memberID === '-1') {
             setMemberDisplayName("Stytch Team");
             return;
@@ -68,7 +72,6 @@ const DisplayedMember = ({memberID}: MemberProps) => {
               operator: "AND",
             },
           });
-          console.log(members);
           setMemberDisplayName(members.members[0].email_address);
         } catch (error) {
           console.error(error);
@@ -79,7 +82,7 @@ const DisplayedMember = ({memberID}: MemberProps) => {
     }, [memberID, stytch.organization.members]);
 
     return (
-        <div>{memberDisplayName}</div>
+        <strong>{memberDisplayName}</strong>
     )
 }
 
@@ -119,8 +122,8 @@ const Upvotes = ({pepper, stytchPermissions, setPeppers}: UpvoteProps) => {
     }
 
     return (
-        <button disabled={!canUpvote()} onClick={() => toggleUpvote()}>
-            <em>{upvotesList.length}</em>
+        <button className="upvote-button" disabled={!canUpvote()} onClick={() => toggleUpvote()}>
+            <em>{upvotesList.length == 0 ? "No upvotes" : upvotesList.length}</em>
             {upvotesList.map((upvote, index) => (
                 <img key={index} className="icon" src="/pepper.png" alt={upvote.memberID} />
             ))}
@@ -130,11 +133,10 @@ const Upvotes = ({pepper, stytchPermissions, setPeppers}: UpvoteProps) => {
 
 type PepperProps = {
     pepper: Pepper;
-    index: number;
     stytchPermissions: PermissionsMap<Permissions>;
     setPeppers: React.Dispatch<React.SetStateAction<Pepper[]>>;
 }
-const PepperEditor = ({pepper, index, stytchPermissions, setPeppers}: PepperProps) => {
+const PepperEditor = ({pepper, stytchPermissions, setPeppers}: PepperProps) => {
     const {member} = useStytchMember();
 
     const onDeletePepper = (id: string) => {
@@ -155,26 +157,57 @@ const PepperEditor = ({pepper, index, stytchPermissions, setPeppers}: PepperProp
         <li>
             <div className="pepper">
                 <div className="pepper-header">
-                    <div>
-                        <b>#{index + 1}:</b> {pepper.pepperText}
-                        <p>Pepper ID: {pepper.id}</p>
-                    </div>
+                    <h3>"{pepper.pepperText}"</h3>
                 </div>
+                <em className="citation">
+                    Created by: <DisplayedMember memberID={pepper.creatorID}/>
+                </em>
                 <div className="pepper-tail">
                     <div>
-                        <button disabled={!canDelete() && !canDeleteOthers()} className={canDeleteOthers() ? "override" : ""} onClick={() => onDeletePepper(pepper.id)}>
-                            <img className="icon" src="/trash.png" alt="Delete" />
-                        </button>
-                    </div>
-                    <div>
-                        <em className="citation">
-                            <DisplayedMember memberID={pepper.creatorID} />
+                        <em>
+                            ID: <code>{pepper.id}</code>
                         </em>
+                    </div>
+                    <Upvotes pepper={pepper} stytchPermissions={stytchPermissions} setPeppers={setPeppers} />
+                    <div>
+                        <button
+                            disabled={!canDelete() && !canDeleteOthers()}
+                            className={canDeleteOthers() ? "override" : ""}
+                            onClick={() => onDeletePepper(pepper.id)}
+                        >
+                            <img
+                                className="icon"
+                                src="/trash.png"
+                                alt="Delete"
+                            />
+                        </button>
                     </div>
                 </div>
             </div>
-
         </li>
+    );
+}
+
+type ResetAllProps = {
+    stytchPermissions: PermissionsMap<Permissions>;
+    setPeppers: React.Dispatch<React.SetStateAction<Pepper[]>>;
+}
+const ResetAll = ({stytchPermissions, setPeppers}: ResetAllProps) => {
+
+    const onResetAll = () => {
+        deleteAllPeppers().then((peppers: Pepper[]) => {
+            setPeppers(peppers);
+        });
+    };
+
+    const canResetAll = () => {
+        return stytchPermissions.pepper.deleteAll
+    };
+
+    return (
+        <button className={canResetAll() ? "reset-all" : "hidden"} onClick={() => onResetAll()}>
+            Reset All
+        </button>
     )
 }
 
@@ -240,16 +273,12 @@ const PeppersRanking = ({stytchPermissions}: EditorProps) => {
                 </h1>
                 <ul>
                     {peppers.map((pepper, i) => (
-                        <div>
-                            <PepperEditor
-                                key={pepper.id}
-                                index={i}
-                                pepper={pepper}
-                                stytchPermissions={stytchPermissions}
-                                setPeppers={setPeppers}
-                            />
-                            <Upvotes pepper={pepper} stytchPermissions={stytchPermissions} setPeppers={setPeppers} />
-                        </div>
+                        <PepperEditor
+                            key={pepper.id}
+                            pepper={pepper}
+                            stytchPermissions={stytchPermissions}
+                            setPeppers={setPeppers}
+                        />
                     ))}
                     {peppers.length === 0 && (
                         <li>
@@ -260,6 +289,7 @@ const PeppersRanking = ({stytchPermissions}: EditorProps) => {
                 <button disabled={!canCreate} className="primary" onClick={() => setModalOpen(true)}>
                     Add Spicy Pepper
                 </button>
+                <ResetAll stytchPermissions={stytchPermissions} setPeppers={setPeppers} />
             </div>
         </main>
     );

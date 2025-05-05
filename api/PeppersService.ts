@@ -1,8 +1,8 @@
 import {Pepper} from "../types";
 
 const DEFAULT_PEPPERS = [{
-    id: 'pepper_0',
-    pepperText: '"Agents" are just sparkling apps',
+    id: 'P_0',
+    pepperText: '\'Agents\' are just sparkling apps',
     upvotes: [
         {
             memberID: '-1',
@@ -37,6 +37,8 @@ class PeppersService {
     get = async (): Promise<Pepper[]> => {
         const peppers = await this.env.PeppersKV.get<Pepper[]>(this.organizationID, "json")
         if (!peppers) {
+            // If no peppers exist, set the id counter to the number of default peppers.
+            await this.env.PeppersKV.put(this.organizationID + "_next_id", DEFAULT_PEPPERS.length.toString())
             return this.#set(DEFAULT_PEPPERS)
         }
         return peppers;
@@ -55,10 +57,22 @@ class PeppersService {
         return sorted
     }
 
+    #getIdAndIncrement = async (): Promise<string> => {
+        let idCounter = await this.env.PeppersKV.get(this.organizationID + "_next_id")
+        if (!idCounter) {
+            console.error("No id counter found - we should have set it in the get method. Resetting to default...")
+            idCounter = DEFAULT_PEPPERS.length.toString() 
+            await this.env.PeppersKV.put(this.organizationID + "_next_id", idCounter)
+        }
+        this.env.PeppersKV.put(this.organizationID + "_next_id", (parseInt(idCounter) + 1).toString())
+        return idCounter
+    }
+
     addPepper = async (pepperText: string): Promise<Pepper[]> => {
         const peppers = await this.get()
+        const newId = "P_" + await this.#getIdAndIncrement()
         const newPepper: Pepper = {
-            id: `pepper_${Date.now().toString()}`, //Assume that this will be unique, which in general is not true, but close enough for this use case.
+            id: newId,
             pepperText: pepperText,
             creatorID: this.memberID,
             upvotes: [],
@@ -147,20 +161,20 @@ class PeppersService {
     deleteAll = async (): Promise<Pepper[]> => {
         //Reset user roles to default
         //Save pepper state to KV
-        const peppers = await this.get()
-        const cleaned = peppers.filter(p => p.id !== pepperID);
-        return this.#set(cleaned);
+        // Nuke it all!
+        await this.env.PeppersKV.delete(this.organizationID)
+        // Get with no data resets the peppers
+        return this.get()
     }
+    // grantVoteRole = async (memberID: string) => {
+    //     //Grant vote role to a user
+    //     //return the user
+    // }
 
-    grantVoteRole = async (memberID: string) => {
-        //Grant vote role to a user
-        //return the user
-    }
-
-    revokeVoteRole = async (memberID: string) => {
-        //Revoke vote role from a user
-        //return the user
-    }
+    // revokeVoteRole = async (memberID: string) => {
+    //     //Revoke vote role from a user
+    //     //return the user
+    // }
     
 }
 

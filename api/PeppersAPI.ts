@@ -20,15 +20,6 @@ export const PeppersAPI = new Hono<{ Bindings: Env }>()
         return c.json({peppers});
     })
 
-    .post('/peppers/:pepperID', stytchSessionAuthMiddleware('updateOwn'), async (c) => {
-        // Update a pepper. Only pepperText can be updated with this endpoint.
-        // Can be called by any authenticated user.
-        const newPepperState = await c.req.json<{ pepperText: string }>();
-        // Get the existing pepper
-        const peppers = await peppersService(c.env, c.var.organizationID, c.var.memberID).updatePepper(c.req.param().pepperID, c.var.canOverrideOwnership, newPepperState.pepperText)
-        return c.json({peppers});
-    })
-
     .delete('/peppers/:pepperID', stytchSessionAuthMiddleware('deleteOwn'), async (c) => {
         // Delete a pepper. Can be called by any authenticated user, but only the creator of the pepper can delete it.
         // Can be called by any admin to delete any pepper.
@@ -54,7 +45,6 @@ export const PeppersAPI = new Hono<{ Bindings: Env }>()
 
     .delete('/peppers', stytchSessionAuthMiddleware('deleteAll'), async (c) => {
         // Delete all peppers. Can be called by any admin.
-        // This also resets all state in this app (reprovisions it) and resets RBAC for all users.
         const peppers = await peppersService(c.env, c.var.organizationID, c.var.memberID).deleteAll()
         return c.json({peppers});
     })

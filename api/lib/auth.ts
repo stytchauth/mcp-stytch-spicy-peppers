@@ -31,6 +31,7 @@ export const stytchSessionAuthMiddleware = (action: RBACAction) => createMiddlew
         memberID: string,
         organizationID: string,
         canOverrideOwnership: boolean,
+        canGrantVoteRole: boolean,
     },
     Bindings: Env,
 }>(async (c, next) => {

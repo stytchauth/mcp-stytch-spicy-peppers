@@ -7,7 +7,7 @@ const policy = {
     "custom_resources": [
         {
             "resource_id": "pepper",
-            "available_actions": ["create", "read", "updateOwn", "deleteOwn", "upvote", "deleteOwnUpvote", "resetAll", "overrideOwnership", "adminVoteRole"]
+            "available_actions": ["create", "read", "updateOwn", "deleteOwn", "deleteAll", "upvote", "deleteOwnUpvote", "overrideOwnership", "adminVoteRole"]
         },
     ],
     "custom_roles": [
@@ -25,7 +25,7 @@ const policy = {
             "permissions": [
                 {
                     "resource_id": "pepper",
-                    "actions": ["overrideOwnership", "resetAll", "adminVoteRole"]
+                    "actions": ["overrideOwnership", "deleteAll", "adminVoteRole"]
                 },
             ]
         }
@@ -54,7 +54,7 @@ const policy = {
             "permissions": [
                 {
                     "resource_id": "pepper",
-                    "actions": ["overrideOwnership", "resetAll"]
+                    "actions": ["overrideOwnership", "deleteAll", "adminVoteRole"]
                 }
             ]
         },
@@ -73,7 +73,7 @@ const policy = {
             },
             {
                 "resource_id": "pepper",
-                "actions": ["create", "read", "updateOwn", "deleteOwn", "upvote", "deleteOwnUpvote"]
+                "actions": ["create", "read", "updateOwn", "deleteOwn"]
             },
         ]
     },
@@ -112,7 +112,7 @@ program
   .requiredOption('--project-id <projectId>', 'Project ID you are updating')
   .parse(process.argv);
 const options = program.opts();
-const rbac_url = `https://management.mbramlage.dev.stytch.com/v1/projects/${options.projectId}/rbac_policy`;
+const rbac_url = `https://management.stytch.com/v1/projects/${options.projectId}/rbac_policy`;
 const body = {
     "project_id": options.projectId,
     "policy": policy

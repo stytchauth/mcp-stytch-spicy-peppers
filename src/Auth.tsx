@@ -14,7 +14,7 @@ import {
 import {NavLink, useLocation} from "react-router-dom";
 import {IDPConsentScreenManifest} from "@stytch/vanilla-js/b2b";
 import {Permissions} from "../types";
-import {MemberRole, PermissionsMap} from "@stytch/core/public";
+import {PermissionsMap} from "@stytch/core/public";
 
 /**
  * A higher-order component that enforces a login requirement for the wrapped component.
@@ -180,13 +180,6 @@ const adminPortalConfig = {
     }
 }
 
-const adminPortalStyles = {
-    fontFamily: `'IBM Plex Sans', monospace;`,
-    container: {
-        backgroundColor: 'rgb(251, 250, 249)',
-        borderWidth: 0,
-    }
-}
 
 type VoteGrantProps = {
     stytchPermissions: PermissionsMap<Permissions>;
@@ -237,6 +230,17 @@ export const GrantVoteRole = withLoginRequired(withStytchPermissions<Permissions
             </div>
         )
 }))
+
+const adminPortalStyles = {
+    fontFamily: `'Booton', monospace;`,
+    container: {
+        backgroundColor: '#F4EEE9',
+        borderWidth: 5,
+        borderColor: '#B2D6DE',
+        borderStyle: 'solid',
+        borderRadius: '10px',
+    }
+}
 
 export const MemberSettings = withLoginRequired(() => {
     return (

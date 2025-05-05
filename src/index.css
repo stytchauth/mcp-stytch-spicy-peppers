@@ -1,8 +1,15 @@
 body {
     margin: 0;
     min-height: 100vh;
-    color: rgb(29, 29, 29);
-    background-color: rgb(251, 250, 249);
+    color: #1D1D1D;
+    background-color: #FBFAF9;
+}
+
+@font-face {
+    font-family: Booton;
+    font-style: normal;
+    font-weight: 400;
+    src: url("/fonts/Booton-Regular.woff2") format("woff2");
 }
 
 #root {
@@ -12,7 +19,7 @@ body {
     align-items: center;
     min-height: 100vh;
 
-    font-family: 'IBM Plex Sans', monospace;
+    font-family: 'Booton', monospace;
     line-height: 1.5;
 
     text-rendering: optimizeLegibility;
@@ -65,6 +72,10 @@ footer {
     min-height: 10vh;
 }
 
+.hidden {
+    display: none;
+}
+
 button {
     border: none;
     margin-left: 10px;
@@ -100,6 +111,13 @@ button.primary:disabled {
     color: #e0e0e0; /* Lighter text color for disabled primary buttons */
     cursor: not-allowed;
     opacity: 0.7;
+}
+
+button.reset-all {
+    background-color: #8F0002;
+    color: #FBFAF9;
+    font-weight: bold;
+    float:right;
 }
 
 button.text {
@@ -154,8 +172,9 @@ button.tiny {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        min-width: 40vw;
+        min-width: 80vw;
         margin-bottom: 8px;
+        font-size: 2vh;
     }
 
     li button {
@@ -163,9 +182,17 @@ button.tiny {
     }
 
     .citation {
-        font-size: 14px;
+        font-size: 1.5vh;
         text-align: right;
-        display: block;
+        margin-left: auto;
+        display: flex;
+    }
+
+    .upvote-button {
+        background-color: #FFBCBD;
+        border-radius: 10px;
+        padding: 10px;
+        margin-left: auto;
     }
 }
 
@@ -173,6 +200,9 @@ button.tiny {
     display: flex;
     flex-direction: column;
     min-width: 100%;
+    background-color: #FF6E71;
+    border-radius: 10px;
+    padding: 10px;
 }
 
 .pepper-header {
