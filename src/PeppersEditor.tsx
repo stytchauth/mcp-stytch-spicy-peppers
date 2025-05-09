@@ -239,6 +239,15 @@ const PeppersRanking = ({stytchPermissions}: EditorProps) => {
         setModalOpen(false);
     };
 
+    // SSE for real-time updates
+    useEffect(() => {
+        const eventSource = new EventSource("/api/peppers/state-changes");
+        eventSource.onmessage = (event) => {
+            console.log(`Received SSE event: ${event.data}`);
+            getPeppers().then(peppers => setPeppers(peppers));
+        };
+    }, [stytchPermissions.pepper.read]);
+
     const canCreate = stytchPermissions.pepper.create;
 
     return (

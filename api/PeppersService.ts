@@ -76,6 +76,8 @@ class PeppersService {
         });
 
         await this.env.PeppersKV.put(this.organizationID, JSON.stringify(sorted))
+        // see PeppersAPI.ts for what this counter is used for.
+        await this.#incrementSseCounter()
         return sorted
     }
 
@@ -91,6 +93,23 @@ class PeppersService {
         return idCounter
     }
 
+    #incrementSseCounter = async (): Promise<number> => {
+        const sseCounter = await this.getSseCounter()
+        this.env.PeppersKV.put(this.organizationID + "_sse_counter", (sseCounter + 1).toString())
+        console.log(`Incremented sse counter to ${sseCounter}`)
+        return sseCounter
+    }
+
+    getSseCounter = async (): Promise<number> => {
+        const sseCounter = await this.env.PeppersKV.get(this.organizationID + "_sse_counter")
+        console.log(`SSE counter: ${sseCounter}`)
+        if (!sseCounter) {
+            console.info("No sse counter found. Resetting to default...")
+            this.env.PeppersKV.put(this.organizationID + "_sse_counter", "1")
+            return 1
+        }
+        return parseInt(sseCounter)
+    }
     addPepper = async (pepperText: string): Promise<Pepper[]> => {
         const peppers = await this.get()
         const newId = "P_" + await this.#getIdAndIncrement()
