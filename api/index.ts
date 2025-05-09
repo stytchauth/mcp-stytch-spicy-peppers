@@ -15,7 +15,6 @@ export default new Hono<{ Bindings: Env }>()
 
     // Serve the OAuth Authorization Server response for Dynamic Client Registration
     .get('/.well-known/oauth-authorization-server', async (c) => {
-        console.log("hi")
         const url = new URL(c.req.url);
         return c.json({
             issuer: c.env.STYTCH_PROJECT_ID,

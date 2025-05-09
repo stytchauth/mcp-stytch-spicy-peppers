@@ -177,6 +177,10 @@ button.tiny {
         font-size: 2vh;
     }
 
+    h3 {
+        margin: 1vh;
+    }
+
     li button {
         border: 4px solid #FFBCBD;
         margin-left: 10px;

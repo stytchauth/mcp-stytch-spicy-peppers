@@ -156,7 +156,7 @@ const PepperEditor = ({pepper, stytchPermissions, setPeppers}: PepperProps) => {
         <li>
             <div className="pepper">
                 <div className="pepper-header">
-                    <h3>"{pepper.pepperText}"</h3>
+                    <h3>{pepper.pepperText}</h3>
                 </div>
                 <em className="citation">
                     Created by: <DisplayedMember memberID={pepper.creatorID}/>

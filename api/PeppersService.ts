@@ -3,13 +3,34 @@ import {Pepper} from "../types";
 const DEFAULT_PEPPERS = [{
     id: 'P_0',
     pepperText: '\'Agents\' are just sparkling apps',
-    upvotes: [
-        {
-            memberID: '-1',
-        }
-    ],
+    upvotes: [],
     creatorID: '-1',
-}]
+},
+{
+    id: 'P_1',
+    pepperText: 'Microservices was a mistake',
+    upvotes: [],
+    creatorID: '-1',
+},
+{
+    id: 'P_2',
+    pepperText: 'CAPTCHA stops more users than bots',
+    upvotes: [],
+    creatorID: '-1',
+},
+{
+    id: 'P_3',
+    pepperText: 'Python is performant enough',
+    upvotes: [],
+    creatorID: '-1',
+},
+{
+    id: 'P_4',
+    pepperText: 'The most useful vim command is \':q\'',
+    upvotes: [],
+    creatorID: '-1',
+},
+]
 
 export class PepperUneditableError extends Error {
     constructor(message: string) {
@@ -41,6 +62,7 @@ class PeppersService {
             await this.env.PeppersKV.put(this.organizationID + "_next_id", DEFAULT_PEPPERS.length.toString())
             return this.#set(DEFAULT_PEPPERS)
         }
+        console.log(`Fetched ${peppers.length} peppers`)
         return peppers;
     }
 
@@ -65,6 +87,7 @@ class PeppersService {
             await this.env.PeppersKV.put(this.organizationID + "_next_id", idCounter)
         }
         this.env.PeppersKV.put(this.organizationID + "_next_id", (parseInt(idCounter) + 1).toString())
+        console.log(`Incremented id counter to ${idCounter}`)
         return idCounter
     }
 
@@ -78,7 +101,7 @@ class PeppersService {
             upvotes: [],
         }
         peppers.push(newPepper)
-        console.log(newPepper)
+        console.log(`New pepper added: ${newPepper}`)
         return this.#set(peppers)
     }
 
@@ -107,6 +130,7 @@ class PeppersService {
             return this.get()
         }
         const cleaned = peppers.filter(p => p.id !== existingPepper.id);
+        console.log(`Pepper ${pepperID} deleted`)
         return this.#set(cleaned);
     }
 
@@ -129,6 +153,7 @@ class PeppersService {
                 }, [] as {memberID: string}[])
             }
         });
+        console.log(`Pepper ${pepperID} upvoted`)
         return this.#set(updated);
     }
 
@@ -145,6 +170,7 @@ class PeppersService {
                 upvotes: p.upvotes.filter(u => u.memberID !== this.memberID)
             }
         });
+        console.log(`Pepper ${pepperID} upvote removed`)
         return this.#set(updated);
     }
 
@@ -153,7 +179,8 @@ class PeppersService {
         //Save pepper state to KV
         // Nuke it all!
         await this.env.PeppersKV.delete(this.organizationID)
-        // Get with no data resets the peppers
+        // Get with no data resets the peppers`
+        console.log(`Deleted ALL peppers`)
         return this.get()
     }
 }
