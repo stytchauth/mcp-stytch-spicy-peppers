@@ -3,7 +3,7 @@ import {StytchB2BProvider} from "@stytch/react/b2b";
 import {StytchB2BUIClient} from "@stytch/vanilla-js/b2b";
 
 import PeppersEditor from "./PeppersEditor.tsx";
-import {Authorize, Login, MemberSettings, Nav} from "./Auth.tsx";
+import {Authorize, MemberSettings, Nav, SignUpOrLogIn} from "./Auth.tsx";
 
 const stytch = new StytchB2BUIClient(import.meta.env.VITE_STYTCH_PUBLIC_TOKEN ?? '', {
     endpointOptions: {
@@ -17,9 +17,9 @@ function App() {
             <Router>
                 <Nav />
                 <Routes>
-                    <Route path="/login" element={<Login/>}/>
+                    <Route path="/login" element={<SignUpOrLogIn/>}/>
                     <Route path="/oauth/authorize" element={<Authorize/>}/>
-                    <Route path="/authenticate" element={<Login/>}/>
+                    <Route path="/authenticate" element={<SignUpOrLogIn/>}/>
 
                     <Route path="/peppers" element={<PeppersEditor/>}/>
 

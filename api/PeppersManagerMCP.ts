@@ -115,6 +115,20 @@ export class PeppersManagerMCP extends McpAgent<Env, unknown, AuthenticationCont
                 }
             }));
 
+        const votePepperSchema = {
+            pepperID: z.string()
+        }
+        server.tool('votePepper', 'Upvote an existing spicy pepper', votePepperSchema,
+            this.withRequiredPermissions('upvote', async (req) => {
+                const result = await this.peppersService.setUpvote(req.pepperID);
+                return this.formatResponse('Spicy Pepper upvoted successfully', result);
+            }));
+        server.tool('removeVotePepper', 'Remove an upvote from an existing spicy pepper', votePepperSchema,
+            this.withRequiredPermissions('deleteOwnUpvote', async (req) => {
+                const result = await this.peppersService.deleteUpvote(req.pepperID);
+                return this.formatResponse('Spicy Pepper upvoted removed successfully', result);
+            }));
+
         return server
     }
 }

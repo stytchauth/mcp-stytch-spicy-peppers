@@ -62,18 +62,20 @@ const onLoginComplete = () => {
     }
 }
 
-/**
- * The Login page implementation. Wraps the StytchLogin UI component.
- * View all configuration options at https://stytch.com/docs/sdks/ui-configuration
- */
-export function Login() {
-    const loginConfig = useMemo<StytchB2BUIConfig>(() => ({
-        authFlowType: AuthFlowType.Discovery,
-        products: [B2BProducts.emailOtp],
-        sessionOptions: {sessionDurationMinutes: 60},
+export function SignUpOrLogIn() {
+    const signUpConfig = useMemo<StytchB2BUIConfig>(() => ({
+        authFlowType: AuthFlowType.Organization,
+        organizationSlug: "spicy-peppers",
+        products: [B2BProducts.emailOtp, B2BProducts.emailMagicLinks, B2BProducts.oauth],
+        sessionOptions: {sessionDurationMinutes: 60 * 24},
+        emailMagicLinksOptions: {
+            signupRedirectURL: window.location.origin + '/authenticate',
+            loginRedirectURL: window.location.origin + '/authenticate',
+        },
         oauthOptions: {
             providers: [{type: B2BOAuthProviders.Google}],
-            discoveryRedirectURL: window.location.origin + '/authenticate',
+            signupRedirectURL: window.location.origin + '/authenticate',
+            loginRedirectURL: window.location.origin + '/authenticate',
         },
     }), [])
 
@@ -86,7 +88,7 @@ export function Login() {
     return (
         <>
             <h1>🌶️ Spicy Peppers</h1>
-            <StytchB2B config={loginConfig} callbacks={{onEvent: handleOnLoginComplete}}/>
+            <StytchB2B config={signUpConfig} callbacks={{onEvent: handleOnLoginComplete}}/>
         </>
     )
 }

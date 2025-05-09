@@ -25,7 +25,7 @@ const policy = {
             "permissions": [
                 {
                     "resource_id": "pepper",
-                    "actions": ["overrideOwnership", "deleteAll", "adminVoteRole"]
+                    "actions": ["overrideOwnership", "adminVoteRole"]
                 },
             ]
         }

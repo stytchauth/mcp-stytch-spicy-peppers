@@ -178,6 +178,7 @@ button.tiny {
     }
 
     li button {
+        border: 4px solid #FFBCBD;
         margin-left: 10px;
     }
 
@@ -189,20 +190,24 @@ button.tiny {
     }
 
     .upvote-button {
-        background-color: #FFBCBD;
-        border-radius: 10px;
         padding: 10px;
         margin-left: auto;
     }
+}
+
+@keyframes slide {
+    0% { background-position: 0 0; }
+    100% { background-position: 100px -100px; }
 }
 
 .pepper {
     display: flex;
     flex-direction: column;
     min-width: 100%;
-    background-color: #FF6E71;
     border-radius: 10px;
     padding: 10px;
+    background: url('/pepper-transparent.png') repeat center center, #ff6e71; animation: slide 2s linear infinite;
+    background-size: 100px;
 }
 
 .pepper-header {

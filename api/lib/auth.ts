@@ -146,9 +146,6 @@ export async function stytchRBACEnforcement(env: Env, ctx: AuthenticationContext
     // Check overrideOwnership action. An exception is thrown if the user does not have this action, but
     // this is generally OK. This, too, needs to be checked on every call because this permission can change
     // during the lifetime of the connection.
-
-    // TODO: I don't love setting this property on the argument ctx; it might be cleaner to return a value
-    // from this function and pass that in to the argument list of the wrapped function.
     const checkResult: RBACCheckResult = {
         canOverrideOwnership: false
     }

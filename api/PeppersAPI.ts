@@ -49,17 +49,4 @@ export const PeppersAPI = new Hono<{ Bindings: Env }>()
         return c.json({peppers});
     })
 
-    .post('/rbac/vote/:memberID', stytchSessionAuthMiddleware('grantVoteRole'), async (c) => {
-        // Grant vote role to a user. Can be called by any admin.
-        await peppersService(c.env, c.var.organizationID, c.var.memberID).grantVoteRole(c.req.param().memberID)
-        return c.json({'success': true});
-    })
-
-    .delete('/rbac/vote/:memberID', stytchSessionAuthMiddleware('revokeVoteRole'), async (c) => {
-        // Revoke vote role from a user. Can be called by any admin.
-        await peppersService(c.env, c.var.organizationID, c.var.memberID).revokeVoteRole(c.req.param().memberID)
-        return c.json({'success': true});
-    })
-
-
 export type PeppersApp = typeof PeppersAPI;

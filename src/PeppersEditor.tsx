@@ -4,9 +4,8 @@ import {useStytchOrganization, withStytchPermissions, useStytchB2BClient, useSty
 import {PeppersApp} from "../api/PeppersAPI.ts";
 import {withLoginRequired} from "./Auth.tsx";
 import {Pepper, Permissions, Upvote} from "../types";
-import {PermissionsMap, StytchError} from "@stytch/core/public";
-import {NavLink} from "react-router-dom";
-import {CircleHelp, Pen, PlusCircle, TrashIcon} from "lucide-react";
+import {PermissionsMap} from "@stytch/core/public";
+import {CircleHelp} from "lucide-react";
 import {Modal} from "./components/modal.tsx";
 
 
@@ -218,7 +217,7 @@ const PeppersRanking = ({stytchPermissions}: EditorProps) => {
     const {organization} = useStytchOrganization();
     const [peppers, setPeppers] = useState<Pepper[]>([]);
 
-    const [infoModalOpen, setInfoModalOpen] = useState(() => {
+    const [_, setInfoModalOpen] = useState(() => {
         const storedValue = sessionStorage.getItem("showInfoModal");
         return storedValue ? JSON.parse(storedValue) : true;
     });
@@ -272,7 +271,7 @@ const PeppersRanking = ({stytchPermissions}: EditorProps) => {
                     <button className="text" onClick={() => setInfoModalOpen(true)}><CircleHelp/></button>
                 </h1>
                 <ul>
-                    {peppers.map((pepper, i) => (
+                    {peppers.map((pepper) => (
                         <PepperEditor
                             key={pepper.id}
                             pepper={pepper}
