@@ -99,16 +99,16 @@ const Upvotes = ({pepper, stytchPermissions, setPeppers}: UpvoteProps) => {
     }
 
     const onUpvote = () => {
-        upvotePepper(pepper.id).then((peppers: Pepper[]) => {
+        upvotePepper(pepper.uuid_internal).then((peppers: Pepper[]) => {
             setPeppers(peppers);
-            setUpvotesList(peppers.find(p => p.id === pepper.id)?.upvotes || []);
+            setUpvotesList(peppers.find(p => p.uuid_internal === pepper.uuid_internal)?.upvotes || []);
         });
     }
 
     const onDeleteUpvote = () => {
-        deleteUpvote(pepper.id).then((peppers: Pepper[]) => {
+        deleteUpvote(pepper.uuid_internal).then((peppers: Pepper[]) => {
             setPeppers(peppers);
-            setUpvotesList(peppers.find(p => p.id === pepper.id)?.upvotes || []);
+            setUpvotesList(peppers.find(p => p.uuid_internal === pepper.uuid_internal)?.upvotes || []);
         });
     }
 
@@ -164,7 +164,7 @@ const PepperEditor = ({pepper, stytchPermissions, setPeppers}: PepperProps) => {
                 <div className="pepper-tail">
                     <div>
                         <em>
-                            ID: <code>{pepper.id}</code>
+                            Key: <code>{pepper.key}</code>
                         </em>
                     </div>
                     <Upvotes pepper={pepper} stytchPermissions={stytchPermissions} setPeppers={setPeppers} />
@@ -172,7 +172,7 @@ const PepperEditor = ({pepper, stytchPermissions, setPeppers}: PepperProps) => {
                         <button
                             disabled={!canDelete() && !canDeleteOthers()}
                             className={canDeleteOthers() ? "override" : ""}
-                            onClick={() => onDeletePepper(pepper.id)}
+                            onClick={() => onDeletePepper(pepper.uuid_internal)}
                         >
                             <img
                                 className="icon"
@@ -246,6 +246,9 @@ const PeppersRanking = ({stytchPermissions}: EditorProps) => {
             console.log(`Received SSE event: ${event.data}`);
             getPeppers().then(peppers => setPeppers(peppers));
         };
+        eventSource.onerror = (event) => {
+            console.error(`Error on SSE event: ${event.data}`);
+        };
     }, [stytchPermissions.pepper.read]);
 
     const canCreate = stytchPermissions.pepper.create;
@@ -282,7 +285,7 @@ const PeppersRanking = ({stytchPermissions}: EditorProps) => {
                 <ul>
                     {peppers.map((pepper) => (
                         <PepperEditor
-                            key={pepper.id}
+                            key={pepper.uuid_internal}
                             pepper={pepper}
                             stytchPermissions={stytchPermissions}
                             setPeppers={setPeppers}

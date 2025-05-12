@@ -48,13 +48,30 @@ export class PeppersManagerMCP extends McpAgent<Env, unknown, AuthenticationCont
         }
     }
 
+
+
+    getPepperIDFromFuzzyIdentifier = async (identifier: string): Promise<string> => {
+        const peppers = await this.peppersService.get()
+        const potentialMatches = peppers.filter((p) => {
+            // We'll accept a key or a fragment of a UUID.
+            return p.key === identifier || p.uuid_internal.includes(identifier)
+        })
+        // ... although we *must* find exactly one match.
+        if (potentialMatches.length != 1) {
+            throw new Error('No pepper found with identifier: ' + identifier)
+        }
+        return potentialMatches[0].uuid_internal
+    }
+
     get server() {
         const server = new McpServer({
             name: 'Peppers Manager',
             version: '1.0.0',
         })
 
-        server.resource("Peppers", new ResourceTemplate("peppermanager://peppers/{id}", {
+
+
+        server.resource("Peppers", new ResourceTemplate("peppermanager://peppers/{uuid_internal}", {
                 list: this.withRequiredPermissions('read',
                     async () => {
                         const peppers = await this.peppersService.get()
@@ -62,15 +79,15 @@ export class PeppersManagerMCP extends McpAgent<Env, unknown, AuthenticationCont
                         return {
                             resources: peppers.map(pepper => ({
                                 name: pepper.pepperText,
-                                uri: `peppermanager://peppers/{pepper}.id}`
+                                uri: `peppermanager://peppers/${pepper.uuid_internal}`
                             }))
                         }
                     })
             }),
             this.withRequiredPermissions('read',
-                async (uri, {id}) => {
+                async (uri, {uuid_internal}) => {
                     const peppers = await this.peppersService.get();
-                    const objective = peppers.find(pepper => pepper.id === id);
+                    const objective = peppers.find(pepper => pepper.uuid_internal === uuid_internal);
                     return {
                         contents: [
                             {
@@ -92,19 +109,26 @@ export class PeppersManagerMCP extends McpAgent<Env, unknown, AuthenticationCont
         const addPepperSchema = {
             pepperText: z.string(),
         }
+
         server.tool('addPepper', 'Add a new spicy pepper for the organization', addPepperSchema,
             this.withRequiredPermissions('create', async (req) => {
                 const result = await this.peppersService.addPepper(req.pepperText)
                 return this.formatResponse('Spicy Pepper added successfully', result);
             }))
 
-        const deletePepperSchema = {
-            pepperID: z.string()
+
+        const PepperIdentifier = {
+            identifier: z.string()
         }
-        server.tool('deletePepper', 'Remove an existing spicy pepper from the organization', deletePepperSchema,
+        server.tool('deletePepper', 'Remove an existing spicy pepper from the organization', PepperIdentifier,
             this.withRequiredPermissions('deleteOwn', async (req, checkResult) => {
                 try {
-                    const result = await this.peppersService.deletePepper(req.pepperID, (checkResult as unknown as RBACCheckResult).canOverrideOwnership);
+                    let pepperID = req.identifier
+                    if (pepperID.length < 32) {
+                        // We were given a key or a fragment of a UUID, not a full UUID. Search for the pepper.
+                        pepperID = await this.getPepperIDFromFuzzyIdentifier(req.identifier)
+                    }
+                    const result = await this.peppersService.deletePepper(pepperID, (checkResult as unknown as RBACCheckResult).canOverrideOwnership);
                     return this.formatResponse('Spicy Pepper deleted successfully', result);
                 } catch (error) {
                     if (error instanceof PepperUneditableError) {
@@ -115,18 +139,41 @@ export class PeppersManagerMCP extends McpAgent<Env, unknown, AuthenticationCont
                 }
             }));
 
-        const votePepperSchema = {
-            pepperID: z.string()
-        }
-        server.tool('votePepper', 'Upvote an existing spicy pepper', votePepperSchema,
+        server.tool('votePepper', 'Upvote an existing spicy pepper', PepperIdentifier,
             this.withRequiredPermissions('upvote', async (req) => {
-                const result = await this.peppersService.setUpvote(req.pepperID);
-                return this.formatResponse('Spicy Pepper upvoted successfully', result);
+                try {
+                    let pepperID = req.identifier
+                    if (pepperID.length < 32) {
+                        // We were given a key or a fragment of a UUID, not a full UUID. Search for the pepper.
+                        pepperID = await this.getPepperIDFromFuzzyIdentifier(req.identifier)
+                    }
+                    const result = await this.peppersService.setUpvote(pepperID);
+                    return this.formatResponse('Spicy Pepper upvoted successfully', result);
+                } catch (error) {
+                    if (error instanceof PepperUneditableError) {
+                        return this.formatError(error.message);
+                    } else {
+                        throw error;
+                    }
+                }
             }));
-        server.tool('removeVotePepper', 'Remove an upvote from an existing spicy pepper', votePepperSchema,
+        server.tool('removeVotePepper', 'Remove an upvote from an existing spicy pepper', PepperIdentifier,
             this.withRequiredPermissions('deleteOwnUpvote', async (req) => {
-                const result = await this.peppersService.deleteUpvote(req.pepperID);
-                return this.formatResponse('Spicy Pepper upvoted removed successfully', result);
+                try {
+                    let pepperID = req.identifier
+                    if (pepperID.length < 32) {
+                        // We were given a key or a fragment of a UUID, not a full UUID. Search for the pepper.
+                        pepperID = await this.getPepperIDFromFuzzyIdentifier(req.identifier)
+                    }
+                    const result = await this.peppersService.deleteUpvote(pepperID);
+                    return this.formatResponse('Spicy Pepper upvoted removed successfully', result);
+                } catch (error) {
+                    if (error instanceof PepperUneditableError) {
+                        return this.formatError(error.message);
+                    } else {
+                        throw error;
+                    }
+                }
             }));
 
         return server

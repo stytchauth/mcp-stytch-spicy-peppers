@@ -3,7 +3,8 @@ export type Upvote = {
 }
 
 export type Pepper = {
-    id: string;
+    uuid_internal: string;
+    key: string;
     pepperText: string;
     creatorID: string;
     upvotes: Upvote[];
