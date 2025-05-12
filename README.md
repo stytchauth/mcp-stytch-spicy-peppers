@@ -15,7 +15,8 @@ If you are more interested in Stytch's [Consumer](https://stytch.com/b2c) produc
 ## Set up
 
 * Set the url VITE_TEST_API_URL="https://test.mbramlage.dev.stytch.com" if running in remote
-* 
+* Set up a dummy credit card in the Stytch dashboard to allow all emails to join
+* Run role defining job
 
 Follow the steps below to get this application fully functional and running using your own Stytch credentials.
 

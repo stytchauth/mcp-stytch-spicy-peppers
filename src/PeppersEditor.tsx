@@ -194,8 +194,9 @@ type ResetAllProps = {
 const ResetAll = ({stytchPermissions, setPeppers}: ResetAllProps) => {
 
     const onResetAll = () => {
-        deleteAllPeppers().then((peppers: Pepper[]) => {
-            setPeppers(peppers);
+        deleteAllPeppers().then(() => {
+            // Just to be sure, refresh everything
+            window.location.reload();
         });
     };
 

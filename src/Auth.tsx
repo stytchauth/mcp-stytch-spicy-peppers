@@ -208,6 +208,9 @@ export const GrantVoteRole = withLoginRequired(withStytchPermissions<Permissions
                     roles: [...new_roles, 'pepperVoter'],
                 })
             }
+            // Gross. This should be refreshable on the local page, but I don't have time to dig in to how the user management
+            // component stores its state.
+            window.location.reload();
         }
 
         const onRemoveVoteRole = async () => {
@@ -219,6 +222,9 @@ export const GrantVoteRole = withLoginRequired(withStytchPermissions<Permissions
                     roles: new_roles.map(role => role.role_id),
                 })
             }
+            // Gross. This should be refreshable on the local page, but I don't have time to dig in to how the user management
+            // component stores its state.
+            window.location.reload();
         }
         return (
             <div>
@@ -229,6 +235,8 @@ export const GrantVoteRole = withLoginRequired(withStytchPermissions<Permissions
                 <button disabled={!canAdminVoteRole()} onClick={() => onRemoveVoteRole()}>
                     <img className="icon" src="/trash.png" alt="Remove pepper voting from all users" />
                 </button>
+                <hr />
+                <br />
             </div>
         )
 }))

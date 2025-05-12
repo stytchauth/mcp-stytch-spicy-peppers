@@ -198,6 +198,8 @@ class PeppersService {
         //Save pepper state to KV
         // Nuke it all!
         await this.env.PeppersKV.delete(this.organizationID)
+        await this.env.PeppersKV.delete(this.organizationID + "_sse_counter")
+        await this.env.PeppersKV.delete(this.organizationID + "_next_id")
         // Get with no data resets the peppers`
         console.log(`Deleted ALL peppers`)
         return this.get()
