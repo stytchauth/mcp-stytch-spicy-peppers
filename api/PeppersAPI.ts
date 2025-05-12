@@ -10,7 +10,9 @@ let currentPeppersRevision = 0;
 const checkPeppersRevision = async (context: Context) => {
     if (nextKvFetchTimestamp < Date.now()) {
         // We trigger an immediate fetch of the SSE counter from the KV store on all API calls to this server that will update the value.
-        // Therefore, this cooldown time is the max latency for a KV fetch from some other worker / the MCP server.
+        // Therefore, this cooldown time is effectuvely the max latency for a KV fetch catching new state from some other API server / the MCP server.
+        // Simultaneously, this cooldown time is as fast as we will poll - and touch Cloudflare's KV store - for new state. We don't need to
+        // hammer this service repeatedly.
         nextKvFetchTimestamp = Date.now() + 5000;
         currentPeppersRevision = await peppersService(context.env, context.var.organizationID, context.var.memberID).getSseCounter()
     }

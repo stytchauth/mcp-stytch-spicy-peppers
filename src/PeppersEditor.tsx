@@ -189,9 +189,8 @@ const PepperEditor = ({pepper, stytchPermissions, setPeppers}: PepperProps) => {
 
 type ResetAllProps = {
     stytchPermissions: PermissionsMap<Permissions>;
-    setPeppers: React.Dispatch<React.SetStateAction<Pepper[]>>;
 }
-const ResetAll = ({stytchPermissions, setPeppers}: ResetAllProps) => {
+const ResetAll = ({stytchPermissions}: ResetAllProps) => {
 
     const onResetAll = () => {
         deleteAllPeppers().then(() => {
@@ -298,7 +297,7 @@ const PeppersRanking = ({stytchPermissions}: EditorProps) => {
                 <button disabled={!canCreate} className="primary" onClick={() => setModalOpen(true)}>
                     Add Spicy Pepper
                 </button>
-                <ResetAll stytchPermissions={stytchPermissions} setPeppers={setPeppers} />
+                <ResetAll stytchPermissions={stytchPermissions} />
             </div>
         </main>
     );

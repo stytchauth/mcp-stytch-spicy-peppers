@@ -102,7 +102,6 @@ class PeppersService {
 
     getSseCounter = async (): Promise<number> => {
         const sseCounter = await this.env.PeppersKV.get(this.organizationID + "_sse_counter")
-        console.log(`SSE counter: ${sseCounter}`)
         if (!sseCounter) {
             console.info("No sse counter found. Resetting to default...")
             this.env.PeppersKV.put(this.organizationID + "_sse_counter", "1")
