@@ -22,6 +22,10 @@
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Subtle shadow for depth */
     position: relative; /* Ensures close button is positioned relative to this */
     animation: modal-fade-in 0.3s ease-in-out; /* Smooth fade-in effect */
+    
+    h3 {
+        margin-left: 0;
+    }
 }
 
 /* Close Button */
@@ -39,7 +43,7 @@
 
 /* Close button hover effect */
 .modal-close:hover {
-    color: #ff0000; /* Highlight close button when hover */
+    color: #ff6e71
 }
 
 /* Modal Body Content */

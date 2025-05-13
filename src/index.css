@@ -12,6 +12,7 @@ body {
     src: url("/fonts/Booton-Regular.woff2") format("woff2");
 }
 
+
 #root {
     margin: 0;
     display: flex;
@@ -41,11 +42,18 @@ main {
 #title {
     display: inline-block;
     margin:20px;
+    margin-left: 0;
+}
+
+.app-title {
+    font-family: 'Chivo Mono', monospace;
+    font-weight: 500;
 }
 
 button.create-pepper {
     float: right;
     margin:20px;
+    margin-right: 0;
     font-size: 24px;
 }
 
@@ -65,7 +73,7 @@ nav a {
     font-size: 16px;
     font-weight: 600;
     text-decoration: none; /* Remove underline from links */
-    padding: 5px 10px; /* Add padding around links */
+    padding: 5px 5px; /* Add padding around links */
     border-radius: 5px; /* Add rounded edges */
     transition: background-color 0.3s ease; /* Smooth hover effect */
 }
@@ -74,8 +82,25 @@ nav a.active {
     text-decoration: underline;
 }
 
+nav button {
+    margin: 0;
+    background-color: #FBFAF9;
+    color: #1D1D1D;
+    border: 2px solid #a3a3a3;
+}
+
+nav .active button {
+    background-color: #fbfaf9;
+    color: #1d1d1d;
+}
+
+nav button.logout {
+    background-color: #ff6e71;
+    color: #1d1d1d;
+}
+
 nav a:hover {
-    background-color: rgb(230, 253, 19);
+    background-color: #ff6e71;
 }
 
 
@@ -93,10 +118,12 @@ button {
     padding: 10px 20px;
     border-radius: 5px;
     cursor: pointer;
+    font-family: 'Chivo Mono', monospace;
+    font-weight: 500;
 }
 
 button.primary {
-    background-color: #1D1D1D;
+    background-color: #383838;
     color: #FFF;
 }
 
@@ -206,6 +233,7 @@ button.tiny {
         font-size: 1.5vh;
         text-align: right;
         margin-left: auto;
+        margin-right: 10px;
         display: flex;
     }
 
@@ -218,6 +246,28 @@ button.tiny {
         max-width: 70%;
         overflow: auto;
     }
+
+    .pepper {
+        display: flex;
+        flex-direction: column;
+        min-width: 100%;
+        border-radius: 10px;
+        padding: 0;
+        background: url('/pepper-transparent.png') repeat center center, #ff6e71; animation: slide 2s linear infinite;
+        background-size: 100px;
+    }
+
+    .pepper-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+    .pepper-tail {
+        display: flex;
+        align-items: center;
+        margin: 10px;
+        justify-content: space-between;
+    }
 }
 
 @keyframes slide {
@@ -225,26 +275,6 @@ button.tiny {
     100% { background-position: 100px -100px; }
 }
 
-.pepper {
-    display: flex;
-    flex-direction: column;
-    min-width: 100%;
-    border-radius: 10px;
-    padding: 10px;
-    background: url('/pepper-transparent.png') repeat center center, #ff6e71; animation: slide 2s linear infinite;
-    background-size: 100px;
-}
-
-.pepper-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-}
-.pepper-tail {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-}
 
 .input-group {
     display: flex;

@@ -11,10 +11,11 @@ import {
     AdminPortalB2BProducts,
     AdminPortalMemberManagement,
 } from '@stytch/react/b2b/adminPortal';
-import {NavLink, useLocation} from "react-router-dom";
+import {Link, NavLink, useLocation} from "react-router-dom";
 import {IDPConsentScreenManifest} from "@stytch/vanilla-js/b2b";
 import {Permissions} from "../types";
 import {PermissionsMap} from "@stytch/core/public";
+
 
 /**
  * A higher-order component that enforces a login requirement for the wrapped component.
@@ -87,7 +88,7 @@ export function SignUpOrLogIn() {
 
     return (
         <>
-            <h1>🌶️ Spicy Peppers</h1>
+            <h1 className="app-title">🌶️ Spicy Peppers</h1>
             <StytchB2B config={signUpConfig} callbacks={{onEvent: handleOnLoginComplete}}/>
         </>
     )
@@ -276,12 +277,14 @@ export const Nav = withStytchPermissions<Permissions, object>(
     return (
         <nav>
             <NavLink className={location.pathname === "/peppers" ? "active" : ""} to="/peppers">
-                Spicy Peppers
+                <button className="primary">Spicy Peppers</button>
             </NavLink>
             {canSeeMemberTab() && <NavLink className={location.pathname === "/settings/members" ? "active" : ""} to="/settings/members">
-                Member Management
+                <button className="primary">Member Management</button>
             </NavLink>}
-            <button className="primary" onClick={() => stytch.session.revoke()}> Log Out</button>
+            <a className="logout" onClick={() => stytch.session.revoke()}>
+                <button className="primary logout"> Log Out</button>
+            </a>
         </nav>
     )
 })
