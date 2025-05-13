@@ -99,16 +99,16 @@ const Upvotes = ({pepper, stytchPermissions, setPeppers}: UpvoteProps) => {
     }
 
     const onUpvote = () => {
-        upvotePepper(pepper.uuid_internal).then((peppers: Pepper[]) => {
+        upvotePepper(pepper.uuid).then((peppers: Pepper[]) => {
             setPeppers(peppers);
-            setUpvotesList(peppers.find(p => p.uuid_internal === pepper.uuid_internal)?.upvotes || []);
+            setUpvotesList(peppers.find(p => p.uuid === pepper.uuid)?.upvotes || []);
         });
     }
 
     const onDeleteUpvote = () => {
-        deleteUpvote(pepper.uuid_internal).then((peppers: Pepper[]) => {
+        deleteUpvote(pepper.uuid).then((peppers: Pepper[]) => {
             setPeppers(peppers);
-            setUpvotesList(peppers.find(p => p.uuid_internal === pepper.uuid_internal)?.upvotes || []);
+            setUpvotesList(peppers.find(p => p.uuid === pepper.uuid)?.upvotes || []);
         });
     }
 
@@ -164,7 +164,7 @@ const PepperEditor = ({pepper, stytchPermissions, setPeppers}: PepperProps) => {
                 <div className="pepper-tail">
                     <div>
                         <em>
-                            Key: <code>{pepper.key}</code>
+                            Key: <code>{pepper.uuid.substring(pepper.uuid.length - 5)}</code>
                         </em>
                     </div>
                     <Upvotes pepper={pepper} stytchPermissions={stytchPermissions} setPeppers={setPeppers} />
@@ -172,7 +172,7 @@ const PepperEditor = ({pepper, stytchPermissions, setPeppers}: PepperProps) => {
                         <button
                             disabled={!canDelete() && !canDeleteOthers()}
                             className={canDeleteOthers() ? "override" : ""}
-                            onClick={() => onDeletePepper(pepper.uuid_internal)}
+                            onClick={() => onDeletePepper(pepper.uuid)}
                         >
                             <img
                                 className="icon"
@@ -241,13 +241,17 @@ const PeppersRanking = ({stytchPermissions}: EditorProps) => {
 
     // SSE for real-time updates
     useEffect(() => {
-        const eventSource = new EventSource("/api/peppers/state-changes");
+        let eventSource = new EventSource("/api/peppers/state-changes");
         eventSource.onmessage = (event) => {
             console.log(`Received SSE event: ${event.data}`);
-            getPeppers().then(peppers => setPeppers(peppers));
+            getPeppers().then((peppers) => {
+                setPeppers(peppers);
+            });
         };
         eventSource.onerror = (event) => {
-            console.error(`Error on SSE event: ${event.data}`);
+            console.error(`Error on SSE event: ${JSON.stringify(event)}`);
+            eventSource.close();
+            eventSource = new EventSource("/api/peppers/state-changes");
         };
     }, [stytchPermissions.pepper.read]);
 
@@ -285,7 +289,7 @@ const PeppersRanking = ({stytchPermissions}: EditorProps) => {
                 <ul>
                     {peppers.map((pepper) => (
                         <PepperEditor
-                            key={pepper.uuid_internal}
+                            key={pepper.uuid + pepper.upvotes.length}   // I'm sure there's a better way to do this. React was seeing that the order changed, but not deeply that upvotes changed. Force the issue with a hybrid key
                             pepper={pepper}
                             stytchPermissions={stytchPermissions}
                             setPeppers={setPeppers}

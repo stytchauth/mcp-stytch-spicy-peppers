@@ -54,13 +54,13 @@ export class PeppersManagerMCP extends McpAgent<Env, unknown, AuthenticationCont
         const peppers = await this.peppersService.get()
         const potentialMatches = peppers.filter((p) => {
             // We'll accept a key or a fragment of a UUID.
-            return p.key === identifier || p.uuid_internal.includes(identifier)
+            return p.uuid.toUpperCase().includes(identifier.toUpperCase())
         })
         // ... although we *must* find exactly one match.
         if (potentialMatches.length != 1) {
             throw new Error('No pepper found with identifier: ' + identifier)
         }
-        return potentialMatches[0].uuid_internal
+        return potentialMatches[0].uuid
     }
 
     get server() {
@@ -79,7 +79,7 @@ export class PeppersManagerMCP extends McpAgent<Env, unknown, AuthenticationCont
                         return {
                             resources: peppers.map(pepper => ({
                                 name: pepper.pepperText,
-                                uri: `peppermanager://peppers/${pepper.uuid_internal}`
+                                uri: `peppermanager://peppers/${pepper.uuid}`
                             }))
                         }
                     })
@@ -87,7 +87,7 @@ export class PeppersManagerMCP extends McpAgent<Env, unknown, AuthenticationCont
             this.withRequiredPermissions('read',
                 async (uri, {uuid_internal}) => {
                     const peppers = await this.peppersService.get();
-                    const objective = peppers.find(pepper => pepper.uuid_internal === uuid_internal);
+                    const objective = peppers.find(pepper => pepper.uuid === uuid_internal);
                     return {
                         contents: [
                             {

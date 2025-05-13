@@ -111,7 +111,11 @@ export const PeppersAPI = new Hono<{ Bindings: Env }>()
               }
               await stream.sleep(1000)
             }
-          })
+          },
+        async (err, stream) => {
+            await stream.writeln('An error occurred!')
+            console.error(err)
+        })
     })
 
 export type PeppersApp = typeof PeppersAPI;

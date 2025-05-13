@@ -2,36 +2,31 @@ import {Pepper} from "../types";
 import { v7 as uuidv7 } from 'uuid';
 
 const DEFAULT_PEPPERS = [{
-    uuid_internal: uuidv7(),
-    key: 'Unset',
+    uuid: '0196c692-df29-7318-ac1d-9fdca34ddc29',
     pepperText: '\'Agents\' are just sparkling apps',
     upvotes: [],
     creatorID: '-1',
 },
 {
-    uuid_internal: uuidv7(),
-    key: 'Unset',
+    uuid: '0196c692-df29-7318-ac1d-a2ca8adb15fb',
     pepperText: 'Microservices was a mistake',
     upvotes: [],
     creatorID: '-1',
 },
 {
-    uuid_internal: uuidv7(),
-    key: 'Unset',
+    uuid: '0196c692-df29-7318-ac1d-a69b0ccb4ae1',
     pepperText: 'CAPTCHA stops more users than bots',
     upvotes: [],
     creatorID: '-1',
 },
 {
-    uuid_internal: uuidv7(),
-    key: 'Unset',
+    uuid: '0196c692-df29-7318-ac1d-a9580a96167c',
     pepperText: 'Python is performant enough',
     upvotes: [],
     creatorID: '-1',
 },
 {
-    uuid_internal: uuidv7(),
-    key: 'Unset',
+    uuid: '0196c692-df29-7318-ac1d-ac509c697230',
     pepperText: 'The most useful vim command is \':q\'',
     upvotes: [],
     creatorID: '-1',
@@ -63,7 +58,7 @@ class PeppersService {
 
     get = async (): Promise<Pepper[]> => {
         const peppers = await this.env.PeppersKV.get<Pepper[]>(this.organizationID, "json")
-        if (!peppers) {
+        if (!peppers || peppers.length === 0) {
             // If no peppers exist, set the id counter to the number of default peppers.
             await this.env.PeppersKV.put(this.organizationID + "_next_id", DEFAULT_PEPPERS.length.toString())
             return this.#set(DEFAULT_PEPPERS)
@@ -73,23 +68,12 @@ class PeppersService {
     }
 
     #set = async (peppers: Pepper[]): Promise<Pepper[]> => {
-        // I don't love iterating twice, but we aren't going to have a lot of peppers, so it's probably OK.
-        // Each spicy pepper has a UUIDv7 - which is monotonically increasing based on timestamp and then random value.
-        // These IDs will stably sort based on insertion order (or so close that they stably get a sort order on first creation)
-        // However, to associate from web to asking to "upvote pepper X" a more human-friendly ID is better.
-        // So we'll sort and set a display ID for this purpose.
-        const id_sorted = peppers.sort((t1, t2) => {
-            return t1.uuid_internal.localeCompare(t2.uuid_internal);
-        });
-        id_sorted.forEach((p, i) => {
-            p.key = `P_${i}`
-        });
-        // Then sort by upvotes and uuid
-        const upvoteSorted = id_sorted.sort((t1, t2) => {
+        // sort by upvotes and uuid
+        const upvoteSorted = peppers.sort((t1, t2) => {
             if (t1.upvotes.length !== t2.upvotes.length) {
                 return t2.upvotes.length - t1.upvotes.length;
             }
-            return t1.uuid_internal.localeCompare(t2.uuid_internal);
+            return t1.uuid.localeCompare(t2.uuid);
         });
 
         await this.env.PeppersKV.put(this.organizationID, JSON.stringify(upvoteSorted))
@@ -116,10 +100,8 @@ class PeppersService {
     }
     addPepper = async (pepperText: string): Promise<Pepper[]> => {
         const peppers = await this.get()
-        const newId = "P_" + uuidv7()
         const newPepper: Pepper = {
-            uuid_internal: newId,
-            key: 'Unset',
+            uuid: uuidv7(),
             pepperText: pepperText,
             creatorID: this.memberID,
             upvotes: [],
@@ -131,7 +113,7 @@ class PeppersService {
 
     #getPepperIfEditable = async (pepperID: string, canOverrideOwnership: boolean): Promise<Pepper | false> => {
         const peppers = await this.get()
-        const existingPepper = peppers.find(p => p.uuid_internal === pepperID)
+        const existingPepper = peppers.find(p => p.uuid === pepperID)
         if (!existingPepper) {
             console.error(`Pepper ${pepperID} not found - no pepper deleted`)
             return false
@@ -151,7 +133,7 @@ class PeppersService {
         if (!existingPepper) {
             return this.get()
         }
-        const cleaned = peppers.filter(p => p.uuid_internal !== existingPepper.uuid_internal);
+        const cleaned = peppers.filter(p => p.uuid !== existingPepper.uuid);
         console.log(`Pepper ${pepperID} deleted`)
         return this.#set(cleaned);
     }
@@ -159,7 +141,7 @@ class PeppersService {
     setUpvote = async (pepperID: string): Promise<Pepper[]> => {
         const peppers = await this.get()
         const updated = peppers.map(p => {
-            if (p.uuid_internal !== pepperID) {
+            if (p.uuid !== pepperID) {
                 return p
             }
             return {
@@ -182,7 +164,7 @@ class PeppersService {
     deleteUpvote = async (pepperID: string): Promise<Pepper[]> => {
         const peppers = await this.get()
         const updated = peppers.map(p => {
-            if (p.uuid_internal !== pepperID) {
+            if (p.uuid !== pepperID) {
                 return p
             }
             return {
