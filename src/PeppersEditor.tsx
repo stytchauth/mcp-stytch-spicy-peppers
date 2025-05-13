@@ -70,7 +70,11 @@ const DisplayedMember = ({memberID}: MemberProps) => {
               operator: "AND",
             },
           });
-          setMemberDisplayName(members.members[0].email_address);
+          let displayName = members.members[0].name;
+          if (displayName.length == 0) {
+            displayName = members.members[0].email_address.split('@')[0];
+          }
+          setMemberDisplayName(displayName);
         } catch (error) {
           console.error(error);
           setMemberDisplayName("Unknown Member (could not search)");
