@@ -11,11 +11,20 @@ import {
     AdminPortalB2BProducts,
     AdminPortalMemberManagement,
 } from '@stytch/react/b2b/adminPortal';
-import {Link, NavLink, useLocation} from "react-router-dom";
+import {NavLink, useLocation} from "react-router-dom";
 import {IDPConsentScreenManifest} from "@stytch/vanilla-js/b2b";
 import {Permissions} from "../types";
 import {PermissionsMap} from "@stytch/core/public";
+import {hc} from 'hono/client';
+import {PeppersApp} from "../api/PeppersAPI.ts";
 
+
+const client = hc<PeppersApp>(`${window.location.origin}/api`);
+
+const deleteAllPeppers = () =>
+    client.peppers.$delete()
+        .then(res => res.json())
+        .then(res => res.peppers);
 
 /**
  * A higher-order component that enforces a login requirement for the wrapped component.
@@ -253,11 +262,34 @@ const adminPortalStyles = {
     }
 }
 
-export const MemberSettings = withLoginRequired(() => {
+export const ResetAll = withLoginRequired(withStytchPermissions<Permissions, object>(
+    ({stytchPermissions}: {stytchPermissions: PermissionsMap<Permissions>}) => {
+
+    const onResetAll = () => {
+        deleteAllPeppers().then(() => {
+            // Just to be sure, refresh everything
+            window.location.reload();
+        });
+    };
+
+    const canResetAll = () => {
+        return stytchPermissions.pepper.deleteAll
+    };
+
     return (
-        <div>
-            <GrantVoteRole/>
-            <AdminPortalMemberManagement styles={adminPortalStyles} config={adminPortalConfig}/>
+        <button className={canResetAll() ? "reset-all" : "hidden"} onClick={() => onResetAll()}>
+            DANGEROUS: Reset All Peppers
+        </button>
+    )
+}))
+
+export const MemberSettings = withLoginRequired(
+    () => {
+        return (
+            <div>
+                <GrantVoteRole/>
+                <AdminPortalMemberManagement styles={adminPortalStyles} config={adminPortalConfig}/>
+                <ResetAll />
         </div>
     )
 })
@@ -280,7 +312,7 @@ export const Nav = withStytchPermissions<Permissions, object>(
                 <button className="primary">Spicy Peppers</button>
             </NavLink>
             {canSeeMemberTab() && <NavLink className={location.pathname === "/settings/members" ? "active" : ""} to="/settings/members">
-                <button className="primary">Member Management</button>
+                <button className="primary">Administration</button>
             </NavLink>}
             <a className="logout" onClick={() => stytch.session.revoke()}>
                 <button className="primary logout"> Log Out</button>

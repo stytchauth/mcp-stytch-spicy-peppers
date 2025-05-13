@@ -36,10 +36,7 @@ const deleteUpvote = (pepperID: string) =>
         .then(res => res.json())
         .then(res => res.peppers);
 
-const deleteAllPeppers = () =>
-    client.peppers.$delete()
-        .then(res => res.json())
-        .then(res => res.peppers);
+
 
 type MemberProps = {
     memberID: string;
@@ -188,28 +185,7 @@ const PepperEditor = ({pepper, stytchPermissions, setPeppers}: PepperProps) => {
     );
 }
 
-type ResetAllProps = {
-    stytchPermissions: PermissionsMap<Permissions>;
-}
-const ResetAll = ({stytchPermissions}: ResetAllProps) => {
 
-    const onResetAll = () => {
-        deleteAllPeppers().then(() => {
-            // Just to be sure, refresh everything
-            window.location.reload();
-        });
-    };
-
-    const canResetAll = () => {
-        return stytchPermissions.pepper.deleteAll
-    };
-
-    return (
-        <button className={canResetAll() ? "reset-all" : "hidden"} onClick={() => onResetAll()}>
-            Reset All
-        </button>
-    )
-}
 
 type EditorProps = {
     stytchPermissions: PermissionsMap<Permissions>;
@@ -363,7 +339,6 @@ const PeppersRanking = ({stytchPermissions}: EditorProps) => {
                         </li>
                     )}
                 </ul>
-                <ResetAll stytchPermissions={stytchPermissions} />
             </div>
         </main>
     );
