@@ -5,12 +5,14 @@ import {PeppersApp} from "../api/PeppersAPI.ts";
 import {withLoginRequired} from "./Auth.tsx";
 import {Pepper, Permissions, Upvote} from "../types";
 import {PermissionsMap} from "@stytch/core/public";
+import {NavLink} from "react-router-dom";
 import {Modal} from "./components/modal.tsx";
+import {CircleHelp} from "lucide-react";
+import { QRCode } from "react-qrcode-logo";
 
 
 const client = hc<PeppersApp>(`${window.location.origin}/api`);
 
-// Objective and Key Result API actions
 const getPeppers = () =>
     client.peppers.$get()
         .then(res => res.json())
@@ -218,6 +220,16 @@ const PeppersRanking = ({stytchPermissions}: EditorProps) => {
     const {organization} = useStytchOrganization();
     const [peppers, setPeppers] = useState<Pepper[]>([]);
 
+    const [infoModalOpen, setInfoModalOpen] = useState(() => {
+        const storedValue = sessionStorage.getItem("showInfoModal");
+        return storedValue ? JSON.parse(storedValue) : true;
+    });
+
+    const onInfoModalClose = () => {
+        sessionStorage.setItem("showInfoModal", JSON.stringify(false));
+        setInfoModalOpen(false);
+    }
+
     const [modalOpen, setModalOpen] = useState(false);
     const [newPepperText, setNewPepperText] = useState('');
 
@@ -320,47 +332,80 @@ const PeppersRanking = ({stytchPermissions}: EditorProps) => {
     return (
         <main>
             <div className="peppersRanking">
+                <Modal isOpen={infoModalOpen} onClose={onInfoModalClose}>
+                    <h3>About Spicy Peppers</h3>
+                    <p>
+                        The data in this demo below can be edited via the UI +
+                        REST API, or via a{" "}
+                        <NavLink to="https://modelcontextprotocol.io/introduction">
+                            MCP Server
+                        </NavLink>{" "}
+                        running on{" "}
+                        <NavLink to="https://modelcontextprotocol.io/introduction">
+                            Cloudflare Workers
+                        </NavLink>
+                        . Connect to the Server running at{" "}
+                        <b>{window.location.origin}/sse</b> with your MCP Client
+                        to try it out.{" "}
+                        <QRCode
+                            value={window.location.origin}
+                            size={300}
+                            qrStyle={"squares"}
+                            fgColor={"#000000"}
+                            ecLevel={"Q"}
+                        />
+                    </p>
+                </Modal>
 
                 <Modal isOpen={modalOpen} onClose={() => setModalOpen(false)}>
                     <form onSubmit={onAddPepper}>
                         <h3>Create a new Spicy Pepper</h3>
-                        <p>
-                            What is a controversial opinion you have?
-                        </p>
+                        <p>What is a controversial opinion you have?</p>
                         <div className="input-group">
                             <input
                                 disabled={!canCreate}
                                 type="text"
                                 placeholder="Enter Spicy Pepper Text"
                                 value={newPepperText}
-                                onChange={(e) => setNewPepperText(e.target.value)}
+                                onChange={(e) =>
+                                    setNewPepperText(e.target.value)
+                                }
                                 required
                             />
-                            <button type="submit" className="primary">Add Spicy Pepper</button>
+                            <button type="submit" className="primary">
+                                Add Spicy Pepper
+                            </button>
                         </div>
                     </form>
                 </Modal>
 
-
                 <h1 id="title">
                     Spicy Peppers for {organization?.organization_name}
+                    <button
+                        className="text"
+                        onClick={() => setInfoModalOpen(true)}
+                    >
+                        <CircleHelp />
+                    </button>
                 </h1>
-                <button disabled={!canCreate} className="primary create-pepper" onClick={() => setModalOpen(true)}>
+                <button
+                    disabled={!canCreate}
+                    className="primary create-pepper"
+                    onClick={() => setModalOpen(true)}
+                >
                     Add Spicy Pepper
                 </button>
                 <ul>
                     {peppers.map((pepper) => (
                         <PepperEditor
-                            key={pepper.uuid + pepper.upvotes.length}   // I'm sure there's a better way to do this. React was seeing that the order changed, but not deeply that upvotes changed. Force the issue with a hybrid key
+                            key={pepper.uuid + pepper.upvotes.length} // I'm sure there's a better way to do this. React was seeing that the order changed, but not deeply that upvotes changed. Force the issue with a hybrid key
                             pepper={pepper}
                             stytchPermissions={stytchPermissions}
                             setPeppers={setPeppers}
                         />
                     ))}
                     {peppers.length === 0 && (
-                        <li>
-                            No spicy peppers defined yet....
-                        </li>
+                        <li>No spicy peppers defined yet....</li>
                     )}
                 </ul>
                 <ResetAll stytchPermissions={stytchPermissions} />
