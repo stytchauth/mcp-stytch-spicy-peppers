@@ -5,7 +5,6 @@ import {PeppersApp} from "../api/PeppersAPI.ts";
 import {withLoginRequired} from "./Auth.tsx";
 import {Pepper, Permissions, Upvote} from "../types";
 import {PermissionsMap} from "@stytch/core/public";
-import {NavLink} from "react-router-dom";
 import {Modal} from "./components/modal.tsx";
 import {CircleHelp} from "lucide-react";
 import { QRCode } from "react-qrcode-logo";
