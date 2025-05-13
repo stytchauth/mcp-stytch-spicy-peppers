@@ -324,22 +324,26 @@ const PeppersRanking = ({stytchPermissions}: EditorProps) => {
                     <hr />
                     <div className="codes">
                         <span className="qr-code-container">
-                            <h4>This app:</h4>
+                            <h4>Spicy Peppers:</h4>
                             <QRCode
                                 value={window.location.origin}
                                 size={300}
                                 qrStyle={"squares"}
-                                fgColor={"#000000"}
+                                fgColor={"#660001"}
+                                logoImage={"/pepper.png"}
+                                removeQrCodeBehindLogo={true}
                                 ecLevel={"Q"}
                             />
                         </span>
                         <span className="qr-code-container">
-                            <h4>Cloudflare Playground:</h4>
+                            <h4>Cloudflare AI Playground:</h4>
                             <QRCode
                                 value="https://playground.ai.cloudflare.com/"
                                 size={300}
                                 qrStyle={"squares"}
-                                fgColor={"#000000"}
+                                fgColor={"#66360d"}
+                                logoImage={"/cloudflare.png"}
+                                removeQrCodeBehindLogo={true}
                                 ecLevel={"Q"}
                             />
                         </span>
