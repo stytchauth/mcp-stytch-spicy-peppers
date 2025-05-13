@@ -5,7 +5,6 @@ import {PeppersApp} from "../api/PeppersAPI.ts";
 import {withLoginRequired} from "./Auth.tsx";
 import {Pepper, Permissions, Upvote} from "../types";
 import {PermissionsMap} from "@stytch/core/public";
-import {CircleHelp} from "lucide-react";
 import {Modal} from "./components/modal.tsx";
 
 
@@ -168,19 +167,17 @@ const PepperEditor = ({pepper, stytchPermissions, setPeppers}: PepperProps) => {
                         </em>
                     </div>
                     <Upvotes pepper={pepper} stytchPermissions={stytchPermissions} setPeppers={setPeppers} />
-                    <div>
-                        <button
-                            disabled={!canDelete() && !canDeleteOthers()}
-                            className={canDeleteOthers() ? "override" : ""}
-                            onClick={() => onDeletePepper(pepper.uuid)}
-                        >
-                            <img
-                                className="icon"
-                                src="/trash.png"
-                                alt="Delete"
-                            />
-                        </button>
-                    </div>
+                    <button
+                        disabled={!canDelete() && !canDeleteOthers()}
+                        className={canDeleteOthers() ? "override" : ""}
+                        onClick={() => onDeletePepper(pepper.uuid)}
+                    >
+                        <img
+                            className="icon"
+                            src="/trash.png"
+                            alt="Delete"
+                        />
+                    </button>
                 </div>
             </div>
         </li>
@@ -217,11 +214,6 @@ const PeppersRanking = ({stytchPermissions}: EditorProps) => {
     const {organization} = useStytchOrganization();
     const [peppers, setPeppers] = useState<Pepper[]>([]);
 
-    const [_, setInfoModalOpen] = useState(() => {
-        const storedValue = sessionStorage.getItem("showInfoModal");
-        return storedValue ? JSON.parse(storedValue) : true;
-    });
-
     const [modalOpen, setModalOpen] = useState(false);
     const [newPepperText, setNewPepperText] = useState('');
 
@@ -241,19 +233,83 @@ const PeppersRanking = ({stytchPermissions}: EditorProps) => {
 
     // SSE for real-time updates
     useEffect(() => {
-        let eventSource = new EventSource("/api/peppers/state-changes");
-        eventSource.onmessage = (event) => {
-            console.log(`Received SSE event: ${event.data}`);
-            getPeppers().then((peppers) => {
-                setPeppers(peppers);
-            });
-        };
-        eventSource.onerror = (event) => {
-            console.error(`Error on SSE event: ${JSON.stringify(event)}`);
-            eventSource.close();
+        let eventSource: EventSource | null = null;
+        let retryCount = 0;
+        const MAX_RETRIES = 5;
+        const RETRY_DELAY = 5000; // 5 seconds
+        let heartbeatTimeout: NodeJS.Timeout;
+
+        const connectSSE = () => {
+            if (eventSource) {
+                eventSource.close();
+            }
+
             eventSource = new EventSource("/api/peppers/state-changes");
+            
+            eventSource.onmessage = (event) => {
+                console.log(`Received SSE event: ${event.data}`);
+                // Reset retry count on successful message
+                retryCount = 0;
+                getPeppers().then((peppers) => {
+                    setPeppers(peppers);
+                });
+            };
+
+            eventSource.onerror = (event) => {
+                console.error(`Error on SSE event: ${JSON.stringify(event)}`);
+                
+                if (eventSource) {
+                    eventSource.close();
+                    eventSource = null;
+                }
+
+                // Clear any existing heartbeat timeout
+                if (heartbeatTimeout) {
+                    clearTimeout(heartbeatTimeout);
+                }
+
+                if (retryCount < MAX_RETRIES) {
+                    retryCount++;
+                    console.log(`Attempting to reconnect (${retryCount}/${MAX_RETRIES})...`);
+                    setTimeout(connectSSE, RETRY_DELAY);
+                } else {
+                    console.error('Max retry attempts reached. Please refresh the page to reconnect.');
+                }
+            };
+
+            // Add heartbeat check
+            const checkHeartbeat = () => {
+                if (eventSource?.readyState === EventSource.CLOSED) {
+                    console.error('SSE connection closed unexpectedly');
+                    if (eventSource) {
+                        eventSource.close();
+                        eventSource = null;
+                    }
+                    if (retryCount < MAX_RETRIES) {
+                        retryCount++;
+                        console.log(`Attempting to reconnect after heartbeat failure (${retryCount}/${MAX_RETRIES})...`);
+                        setTimeout(connectSSE, RETRY_DELAY);
+                    }
+                }
+            };
+
+            // Check heartbeat every 30 seconds
+            heartbeatTimeout = setInterval(checkHeartbeat, 30000);
         };
-    }, [stytchPermissions.pepper.read]);
+
+        connectSSE();
+
+        // Cleanup function
+        return () => {
+            if (eventSource) {
+                eventSource.close();
+                eventSource = null;
+            }
+            if (heartbeatTimeout) {
+                clearTimeout(heartbeatTimeout);
+            }
+        };
+    }, []);
 
     const canCreate = stytchPermissions.pepper.create;
 
@@ -282,10 +338,12 @@ const PeppersRanking = ({stytchPermissions}: EditorProps) => {
                 </Modal>
 
 
-                <h1>
+                <h1 id="title">
                     Spicy Peppers for {organization?.organization_name}
-                    <button className="text" onClick={() => setInfoModalOpen(true)}><CircleHelp/></button>
                 </h1>
+                <button disabled={!canCreate} className="primary create-pepper" onClick={() => setModalOpen(true)}>
+                    Add Spicy Pepper
+                </button>
                 <ul>
                     {peppers.map((pepper) => (
                         <PepperEditor
@@ -301,9 +359,6 @@ const PeppersRanking = ({stytchPermissions}: EditorProps) => {
                         </li>
                     )}
                 </ul>
-                <button disabled={!canCreate} className="primary" onClick={() => setModalOpen(true)}>
-                    Add Spicy Pepper
-                </button>
                 <ResetAll stytchPermissions={stytchPermissions} />
             </div>
         </main>

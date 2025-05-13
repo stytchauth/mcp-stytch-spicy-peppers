@@ -7,7 +7,7 @@ const policy = {
     "custom_resources": [
         {
             "resource_id": "pepper",
-            "available_actions": ["create", "read", "updateOwn", "deleteOwn", "deleteAll", "upvote", "deleteOwnUpvote", "overrideOwnership", "adminVoteRole"]
+            "available_actions": ["create", "read", "updateOwn", "deleteOwn", "deleteAll", "upvote", "deleteOwnUpvote", "overrideOwnership"]
         },
     ],
     "custom_roles": [
@@ -25,7 +25,7 @@ const policy = {
             "permissions": [
                 {
                     "resource_id": "pepper",
-                    "actions": ["overrideOwnership", "adminVoteRole"]
+                    "actions": ["overrideOwnership"]
                 },
             ]
         }
@@ -54,7 +54,7 @@ const policy = {
             "permissions": [
                 {
                     "resource_id": "pepper",
-                    "actions": ["overrideOwnership", "deleteAll", "adminVoteRole"]
+                    "actions": ["overrideOwnership", "deleteAll"]
                 }
             ]
         },

@@ -261,10 +261,15 @@ export const MemberSettings = withLoginRequired(() => {
     )
 })
 
-export const Nav = () => {
-    const stytch = useStytchB2BClient()
-    useLocation()
-    const {member} = useStytchMember()
+export const Nav = withStytchPermissions<Permissions, object>(
+    ({stytchPermissions}: {stytchPermissions: PermissionsMap<Permissions>}) => {
+        const stytch = useStytchB2BClient()
+        useLocation()
+        const {member} = useStytchMember()
+
+        const canSeeMemberTab = () => {
+            return stytchPermissions['stytch.member']['update.settings.roles'];
+        };
 
     if (!member) return null;
 
@@ -273,10 +278,10 @@ export const Nav = () => {
             <NavLink className={location.pathname === "/peppers" ? "active" : ""} to="/peppers">
                 Spicy Peppers
             </NavLink>
-            <NavLink className={location.pathname === "/settings/members" ? "active" : ""} to="/settings/members">
+            {canSeeMemberTab() && <NavLink className={location.pathname === "/settings/members" ? "active" : ""} to="/settings/members">
                 Member Management
-            </NavLink>
+            </NavLink>}
             <button className="primary" onClick={() => stytch.session.revoke()}> Log Out</button>
         </nav>
     )
-}
+})

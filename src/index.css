@@ -38,6 +38,17 @@ main {
     margin-top: 2vh;
 }
 
+#title {
+    display: inline-block;
+    margin:20px;
+}
+
+button.create-pepper {
+    float: right;
+    margin:20px;
+    font-size: 24px;
+}
+
 a,
 a:visited {
     color: rgb(29, 29, 29);
@@ -89,6 +100,7 @@ button.primary {
     color: #FFF;
 }
 
+
 button.primary:hover {
     background-color: rgb(163, 163, 163);
 }
@@ -133,7 +145,7 @@ button .icon {
     padding: 5px;
     display: inline-flex;
     align-items: center; 
-    width: 20px;
+    width: 30px;
 }
 
 button.tiny {
@@ -143,6 +155,8 @@ button.tiny {
 }
 
 .peppersRanking {
+    width: 100%;
+
     input[type='text'] {
         padding: 10px;
         width: 200px;
@@ -184,6 +198,8 @@ button.tiny {
     li button {
         border: 4px solid #FFBCBD;
         margin-left: 10px;
+        padding:0;
+        height: 50px;
     }
 
     .citation {
@@ -194,8 +210,13 @@ button.tiny {
     }
 
     .upvote-button {
-        padding: 10px;
         margin-left: auto;
+        padding-left: 10px;
+        padding-right: 10px;
+        display: inline-flex;
+        align-items: center;
+        max-width: 70%;
+        overflow: auto;
     }
 }
 

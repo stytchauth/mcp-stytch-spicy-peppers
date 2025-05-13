@@ -10,7 +10,7 @@ export type Pepper = {
 }
 
 export type Permissions = {
-    pepper: 'create' | 'read' | 'updateOwn' | 'deleteOwn' | 'deleteAll' | 'upvote' | 'deleteOwnUpvote' | 'adminVoteRole' | 'overrideOwnership';
+    pepper: 'create' | 'read' | 'updateOwn' | 'deleteOwn' | 'deleteAll' | 'upvote' | 'deleteOwnUpvote' | 'overrideOwnership';
     'stytch.member': 'update.settings.roles';
 };
 

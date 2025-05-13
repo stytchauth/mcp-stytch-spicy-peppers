@@ -95,27 +95,66 @@ export const PeppersAPI = new Hono<{ Bindings: Env }>()
     // of the value changing.
     .get('/peppers/state-changes', stytchSessionAuthMiddleware('read'), async (c) => {
         return streamSSE(c, async (stream) => {
-            // Initialize the last SSE counter seen on the sse request
-            let lastSseCounterSeen = await checkPeppersRevision(c)
-            while (true) {
-              // Check the current SSE counter on this loop
-              const currentSseCounter = await checkPeppersRevision(c)
-              if (currentSseCounter !== lastSseCounterSeen) {
-                  // If the SSE counter has changed, send the new SSE event and save the new counter
-                  await stream.writeSSE({
-                      data: `Peppers updated; rev ${currentSseCounter}`,
-                      event: "message",
-                      id: String(sseEventId++),
-                  });
-                  lastSseCounterSeen = currentSseCounter;
-              }
-              await stream.sleep(1000)
+            console.log('SSE connection established')
+            try {
+                // Initialize the last SSE counter seen on the sse request
+                let lastSseCounterSeen = await checkPeppersRevision(c)
+                while (true) {
+                    try {
+                        // Check the current SSE counter on this loop
+                        const currentSseCounter = await checkPeppersRevision(c)
+                        if (currentSseCounter !== lastSseCounterSeen) {
+                            // If the SSE counter has changed, send the new SSE event and save the new counter
+                            await stream.writeSSE({
+                                data: `Peppers updated; rev ${currentSseCounter}`,
+                                event: "message",
+                                id: String(sseEventId++),
+                            });
+                            lastSseCounterSeen = currentSseCounter;
+                        }
+                        await stream.sleep(1000)
+                    } catch (error) {
+                        // Handle individual loop iteration errors
+                        console.error('Error in SSE loop iteration:', error);
+                        // Try to send error to client
+                        try {
+                            await stream.writeSSE({
+                                data: 'Error checking for updates',
+                                event: "error",
+                                id: String(sseEventId++),
+                            });
+                        } catch (writeError) {
+                            console.error('Failed to write error to stream:', writeError);
+                            break; // Break the loop if we can't write to the stream
+                        }
+                        // Wait a bit before retrying
+                        await stream.sleep(5000);
+                    }
+                }
+            } catch (error) {
+                console.error('Fatal error in SSE stream:', error);
+                try {
+                    await stream.writeSSE({
+                        data: 'Fatal error in connection',
+                        event: "error",
+                        id: String(sseEventId++),
+                    });
+                } catch (writeError) {
+                    console.error('Failed to write fatal error to stream:', writeError);
+                }
             }
-          },
-        async (err, stream) => {
-            await stream.writeln('An error occurred!')
-            console.error(err)
-        })
+        }, async (err, stream) => {
+            console.error('SSE stream error:', err);
+            try {
+                await stream.writeSSE({
+                    data: 'Connection error occurred',
+                    event: "error",
+                    id: String(sseEventId++),
+                });
+            } catch (writeError) {
+                console.error('Failed to write error to stream:', writeError);
+            }
+        });
     })
 
 export type PeppersApp = typeof PeppersAPI;
