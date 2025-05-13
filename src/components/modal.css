@@ -16,12 +16,19 @@
 .modal-content {
     background: #fff; /* White background for the modal */
     border-radius: 8px; /* Smooth edges */
-    max-width: 500px; /* Maximum width for the modal */
+    max-width: 70vw; /* Maximum width for the modal */
     width: 90%; /* Make it responsive on smaller devices */
     padding: 20px; /* Spacing inside the modal */
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Subtle shadow for depth */
     position: relative; /* Ensures close button is positioned relative to this */
     animation: modal-fade-in 0.3s ease-in-out; /* Smooth fade-in effect */
+}
+
+.codes {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+    text-align: center;
 }
 
 /* Close Button */
@@ -44,6 +51,9 @@
 
 /* Modal Body Content */
 .modal-body {
+    display: flex;
+    flex-direction: column;
+    align-content: space-between;
     margin-top: 10px;
 }
 

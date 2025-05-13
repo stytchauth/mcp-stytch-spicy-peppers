@@ -335,26 +335,40 @@ const PeppersRanking = ({stytchPermissions}: EditorProps) => {
                 <Modal isOpen={infoModalOpen} onClose={onInfoModalClose}>
                     <h3>About Spicy Peppers</h3>
                     <p>
-                        The data in this demo below can be edited via the UI +
-                        REST API, or via a{" "}
-                        <NavLink to="https://modelcontextprotocol.io/introduction">
-                            MCP Server
-                        </NavLink>{" "}
-                        running on{" "}
-                        <NavLink to="https://modelcontextprotocol.io/introduction">
-                            Cloudflare Workers
-                        </NavLink>
-                        . Connect to the Server running at{" "}
-                        <b>{window.location.origin}/sse</b> with your MCP Client
-                        to try it out.{" "}
-                        <QRCode
-                            value={window.location.origin}
-                            size={300}
-                            qrStyle={"squares"}
-                            fgColor={"#000000"}
-                            ecLevel={"Q"}
-                        />
+                        Spicy Peppers is a demo application that shows how to
+                        use Stytch to manage and vote on a list of "spicy
+                        peppers" (controversial opinions). It has both a web UI
+                        (here!) and a MCP server running on Cloudflare at{" "}
+                        <b>{window.location.origin}/sse</b> that you can connect
+                        to with the Cloudflare{" "}
+                        <a href="https://playground.ai.cloudflare.com/">
+                            {" "}
+                            Workers AI Playground
+                        </a>
                     </p>
+                    <hr />
+                    <div className="codes">
+                        <span className="qr-code-container">
+                            <h4>This app:</h4>
+                            <QRCode
+                                value={window.location.origin}
+                                size={300}
+                                qrStyle={"squares"}
+                                fgColor={"#000000"}
+                                ecLevel={"Q"}
+                            />
+                        </span>
+                        <span className="qr-code-container">
+                            <h4>Cloudflare Playground:</h4>
+                            <QRCode
+                                value="https://playground.ai.cloudflare.com/"
+                                size={300}
+                                qrStyle={"squares"}
+                                fgColor={"#000000"}
+                                ecLevel={"Q"}
+                            />
+                        </span>
+                    </div>
                 </Modal>
 
                 <Modal isOpen={modalOpen} onClose={() => setModalOpen(false)}>
