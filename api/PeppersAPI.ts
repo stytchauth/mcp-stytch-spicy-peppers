@@ -54,7 +54,6 @@ export const PeppersAPI = new Hono<{ Bindings: Env }>()
     .post('/peppers/:pepperID/upvote', stytchSessionAuthMiddleware('upvote'), async (c) => {
         // Upvote a pepper (add the memberID to the upvotes array)
         // Can be called by any authenticated user, but only in the context of their own user.
-        // Can be called by any admin to upvote for any user.
         const peppers = await peppersService(c.env, c.var.organizationID, c.var.memberID).setUpvote(c.req.param().pepperID)
         fetchPeppersRevisionOnNextTick()
         return c.json({peppers});
@@ -63,7 +62,6 @@ export const PeppersAPI = new Hono<{ Bindings: Env }>()
     .delete('/peppers/:pepperID/upvote', stytchSessionAuthMiddleware('deleteOwnUpvote'), async (c) => {
         // Delete a upvote from a pepper (remove the memberID from the upvotes array)
         // Can be called by any authenticated user, but only in the context of their own user.
-        // Can be called by any admin to delete any upvote.
         const peppers = await peppersService(c.env, c.var.organizationID, c.var.memberID).deleteUpvote(c.req.param().pepperID)
         fetchPeppersRevisionOnNextTick()
         return c.json({peppers});

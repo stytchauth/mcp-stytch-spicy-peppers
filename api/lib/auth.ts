@@ -9,7 +9,6 @@ let client: B2BClient | null = null;
 
 function getClient(env: Env): B2BClient {
     if (!client) {
-        console.log(env)
         client = new B2BClient({
             project_id: env.STYTCH_PROJECT_ID,
             secret: env.STYTCH_PROJECT_SECRET,
@@ -19,7 +18,7 @@ function getClient(env: Env): B2BClient {
     return client
 }
 
-export type RBACAction = 'create' | 'read' | 'updateOwn' | 'deleteOwn' | 'upvote' | 'deleteOwnUpvote' | 'deleteAll' | 'grantVoteRole' | 'revokeVoteRole' | 'overrideOwnership'
+export type RBACAction = 'create' | 'read' | 'updateOwn' | 'deleteOwn' | 'upvote' | 'deleteOwnUpvote' | 'deleteAll' | 'overrideOwnership'
 
 /**
  * stytchAuthMiddleware is a Hono middleware that validates that the user is logged in
@@ -39,17 +38,23 @@ export const stytchSessionAuthMiddleware = (action: RBACAction) => createMiddlew
 
     try {
         // First: Authenticate the Stytch Session JWT and get the caller's request context
-        const authRes = await getClient(c.env).sessions.authenticateJwt({
+        // Here we're using the `authenticate` method which will reach out to Stytch's API to
+        // get a new JWT. Why? For the purposes of this example, we want to pick up any
+        // new permissions that the user may get right away. This means we need to sync
+        // with Stytch to get as fresh a JWT as possible.
+        const authRes = await getClient(c.env).sessions.authenticate({
             session_jwt: sessionCookie,
         })
+        const currentJwt = authRes.session_jwt;
 
         // Next: Now that we have the organization ID we can check that the caller has broad permissions
         // to interact with the supplied resource and action within the org ID
         // Depending on how your API exposes IDs, this is an important step to protect against IDOR vulnerabilities
         // Read the RBAC Guide for more information:
         // https://stytch.com/docs/b2b/guides/rbac/backend
+        console.log(action);
         await getClient(c.env).sessions.authenticateJwt({
-            session_jwt: sessionCookie,
+            session_jwt: currentJwt,
             authorization_check: {organization_id: authRes.member_session.organization_id, resource_id: "pepper", action}
         })
 
@@ -59,7 +64,7 @@ export const stytchSessionAuthMiddleware = (action: RBACAction) => createMiddlew
         c.set('canOverrideOwnership', false)
         try {
             await getClient(c.env).sessions.authenticateJwt({
-                session_jwt: sessionCookie,
+                session_jwt: currentJwt,
                 authorization_check: {
                     organization_id: authRes.member_session.organization_id,
                     resource_id: "pepper",
