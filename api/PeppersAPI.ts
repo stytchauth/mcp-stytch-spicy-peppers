@@ -1,28 +1,7 @@
-import {Context, Hono} from "hono";
+import {Hono} from "hono";
 import {streamSSE} from "hono/streaming";
 import {peppersService} from "./PeppersService.ts";
 import {stytchSessionAuthMiddleware} from "./lib/auth";
-
-// Manage SSE events
-let sseEventId = 0;
-let nextKvFetchTimestamp = 0;
-let currentPeppersRevision = 0;
-const checkPeppersRevision = async (context: Context) => {
-    if (nextKvFetchTimestamp < Date.now()) {
-        // We trigger an immediate fetch of the SSE counter from the KV store on all API calls to this server that will update the value.
-        // Therefore, this cooldown time is effectuvely the max latency for a KV fetch catching new state from some other API server / the MCP server.
-        // Simultaneously, this cooldown time is as fast as we will poll - and touch Cloudflare's KV store - for new state. We don't need to
-        // hammer this service repeatedly.
-        nextKvFetchTimestamp = Date.now() + 5000;
-        currentPeppersRevision = await peppersService(context.env, context.var.organizationID, context.var.memberID).getSseCounter()
-    }
-    return currentPeppersRevision;
-}
-
-const fetchPeppersRevisionOnNextTick = async () => {
-    // Invalidate the cooldown time so we immediately fetch the latest value from the KV store.
-    nextKvFetchTimestamp = 0
-}
 
 /**
  * The Hono app exposes the Spicy Pepper Service via REST endpoints for consumption by the frontend
@@ -39,7 +18,6 @@ export const PeppersAPI = new Hono<{ Bindings: Env }>()
         // Add a new pepper. Can be called by any authenticated user.
         const newPepper = await c.req.json<{ pepperText: string }>();
         const peppers = await peppersService(c.env, c.var.organizationID, c.var.memberID).addPepper(newPepper.pepperText)
-        fetchPeppersRevisionOnNextTick()
         return c.json({peppers});
     })
 
@@ -47,7 +25,6 @@ export const PeppersAPI = new Hono<{ Bindings: Env }>()
         // Delete a pepper. Can be called by any authenticated user, but only the creator of the pepper can delete it.
         // Can be called by any admin to delete any pepper.
         const peppers = await peppersService(c.env, c.var.organizationID, c.var.memberID).deletePepper(c.req.param().pepperID, c.var.canOverrideOwnership)
-        fetchPeppersRevisionOnNextTick()
         return c.json({peppers});
     })
 
@@ -55,7 +32,6 @@ export const PeppersAPI = new Hono<{ Bindings: Env }>()
         // Upvote a pepper (add the memberID to the upvotes array)
         // Can be called by any authenticated user, but only in the context of their own user.
         const peppers = await peppersService(c.env, c.var.organizationID, c.var.memberID).setUpvote(c.req.param().pepperID)
-        fetchPeppersRevisionOnNextTick()
         return c.json({peppers});
     })
 
@@ -63,14 +39,12 @@ export const PeppersAPI = new Hono<{ Bindings: Env }>()
         // Delete a upvote from a pepper (remove the memberID from the upvotes array)
         // Can be called by any authenticated user, but only in the context of their own user.
         const peppers = await peppersService(c.env, c.var.organizationID, c.var.memberID).deleteUpvote(c.req.param().pepperID)
-        fetchPeppersRevisionOnNextTick()
         return c.json({peppers});
     })
 
     .delete('/peppers', stytchSessionAuthMiddleware('deleteAll'), async (c) => {
         // Delete all peppers. Can be called by any admin.
         const peppers = await peppersService(c.env, c.var.organizationID, c.var.memberID).deleteAll()
-        fetchPeppersRevisionOnNextTick()
         return c.json({peppers});
     })
 
@@ -92,15 +66,22 @@ export const PeppersAPI = new Hono<{ Bindings: Env }>()
     // and only actually send an SSE event if the value in the KV store has changed, once to each browser within (the timeout here) period
     // of the value changing.
     .get('/peppers/state-changes', stytchSessionAuthMiddleware('read'), async (c) => {
+        let sseEventId = 0;
         return streamSSE(c, async (stream) => {
             console.log('SSE connection established')
             try {
                 // Initialize the last SSE counter seen on the sse request
-                let lastSseCounterSeen = await checkPeppersRevision(c)
+                let lastSseCounterSeen = await peppersService(c.env, c.var.organizationID, c.var.memberID).getSseCounter()
+                // If the SSE counter has changed, send the new SSE event and save the new counter
+                await stream.writeSSE({
+                    data: `Starting at rev ${lastSseCounterSeen}`,
+                    event: "message",
+                    id: String(sseEventId++),
+                });
                 while (true) {
                     try {
                         // Check the current SSE counter on this loop
-                        const currentSseCounter = await checkPeppersRevision(c)
+                        const currentSseCounter = await peppersService(c.env, c.var.organizationID, c.var.memberID).getSseCounter()
                         if (currentSseCounter !== lastSseCounterSeen) {
                             // If the SSE counter has changed, send the new SSE event and save the new counter
                             await stream.writeSSE({
@@ -110,7 +91,7 @@ export const PeppersAPI = new Hono<{ Bindings: Env }>()
                             });
                             lastSseCounterSeen = currentSseCounter;
                         }
-                        await stream.sleep(1000)
+                        await stream.sleep(5000)
                     } catch (error) {
                         // Handle individual loop iteration errors
                         console.error('Error in SSE loop iteration:', error);

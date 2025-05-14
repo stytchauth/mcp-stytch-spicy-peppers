@@ -1,5 +1,6 @@
 import {Pepper} from "../types";
 import { v7 as uuidv7 } from 'uuid';
+import crypto from 'crypto';
 
 const DEFAULT_PEPPERS = [{
     uuid: '0196c692-df29-7318-ac1d-9fdca34ddc29',
@@ -77,27 +78,14 @@ class PeppersService {
         });
 
         await this.env.PeppersKV.put(this.organizationID, JSON.stringify(upvoteSorted))
-        // see PeppersAPI.ts for what this counter is used for.
-        await this.#incrementSseCounter()
         return upvoteSorted
     }
 
-    #incrementSseCounter = async (): Promise<number> => {
-        const sseCounter = await this.getSseCounter()
-        this.env.PeppersKV.put(this.organizationID + "_sse_counter", (sseCounter + 1).toString())
-        console.log(`Incremented sse counter to ${sseCounter}`)
-        return sseCounter
+    getSseCounter = async (): Promise<string> => {
+        const str = await this.env.PeppersKV.get(this.organizationID, "text")
+        return crypto.createHash('sha256').update(str ?? "").digest('hex')
     }
 
-    getSseCounter = async (): Promise<number> => {
-        const sseCounter = await this.env.PeppersKV.get(this.organizationID + "_sse_counter")
-        if (!sseCounter) {
-            console.info("No sse counter found. Resetting to default...")
-            this.env.PeppersKV.put(this.organizationID + "_sse_counter", "1")
-            return 1
-        }
-        return parseInt(sseCounter)
-    }
     addPepper = async (pepperText: string): Promise<Pepper[]> => {
         const peppers = await this.get()
         const newPepper: Pepper = {

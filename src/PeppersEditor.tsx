@@ -236,6 +236,7 @@ const PeppersRanking = ({stytchPermissions}: EditorProps) => {
             }
 
             eventSource = new EventSource("/api/peppers/state-changes");
+            console.log("Connecting to SSE");
             
             eventSource.onmessage = (event) => {
                 console.log(`Received SSE event: ${event.data}`);
