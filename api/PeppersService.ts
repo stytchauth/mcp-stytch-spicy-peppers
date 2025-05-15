@@ -68,6 +68,14 @@ class PeppersService {
         return peppers;
     }
 
+    getSimplifiedPeppers = async (): Promise<Array<{pepperText: string, upvoteCount: number}>> => {
+        const peppers = await this.get();
+        return peppers.map(pepper => ({
+            pepperText: pepper.pepperText,
+            upvoteCount: pepper.upvotes.length
+        }));
+    }
+
     #set = async (peppers: Pepper[]): Promise<Pepper[]> => {
         // sort by upvotes and uuid
         const upvoteSorted = peppers.sort((t1, t2) => {

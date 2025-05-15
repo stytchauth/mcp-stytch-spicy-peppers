@@ -197,7 +197,7 @@ const PeppersRanking = ({stytchPermissions}: EditorProps) => {
 
     const [infoModalOpen, setInfoModalOpen] = useState(() => {
         const storedValue = sessionStorage.getItem("showInfoModal");
-        return storedValue ? JSON.parse(storedValue) : true;
+        return storedValue ? JSON.parse(storedValue) : false;
     });
 
     const onInfoModalClose = () => {

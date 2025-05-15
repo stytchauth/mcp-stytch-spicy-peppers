@@ -14,6 +14,12 @@ export const PeppersAPI = new Hono<{ Bindings: Env }>()
         return c.json({peppers});
     })
 
+    .get('/peppers/simplified', stytchSessionAuthMiddleware('read'), async (c) => {
+        // Get simplified peppers data with just text and upvote count
+        const simplifiedPeppers = await peppersService(c.env, c.var.organizationID, c.var.memberID).getSimplifiedPeppers()
+        return c.json({peppers: simplifiedPeppers});
+    })
+
     .post('/peppers', stytchSessionAuthMiddleware('create'), async (c) => {
         // Add a new pepper. Can be called by any authenticated user.
         const newPepper = await c.req.json<{ pepperText: string }>();

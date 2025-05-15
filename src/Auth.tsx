@@ -76,7 +76,7 @@ export function SignUpOrLogIn() {
     const signUpConfig = useMemo<StytchB2BUIConfig>(() => ({
         authFlowType: AuthFlowType.Organization,
         organizationSlug: "spicy-peppers",
-        products: [B2BProducts.emailOtp, B2BProducts.emailMagicLinks, B2BProducts.oauth],
+        products: [B2BProducts.emailOtp, B2BProducts.emailMagicLinks],
         sessionOptions: {sessionDurationMinutes: 60 * 24},
         emailMagicLinksOptions: {
             signupRedirectURL: window.location.origin + '/authenticate',
