@@ -14,12 +14,6 @@ export const PeppersAPI = new Hono<{ Bindings: Env }>()
         return c.json({peppers});
     })
 
-    .get('/peppers/simplified', stytchSessionAuthMiddleware('read'), async (c) => {
-        // Get simplified peppers data with just text and upvote count
-        const simplifiedPeppers = await peppersService(c.env, c.var.organizationID, c.var.memberID).getSimplifiedPeppers()
-        return c.json({peppers: simplifiedPeppers});
-    })
-
     .post('/peppers', stytchSessionAuthMiddleware('create'), async (c) => {
         // Add a new pepper. Can be called by any authenticated user.
         const newPepper = await c.req.json<{ pepperText: string }>();
@@ -97,7 +91,8 @@ export const PeppersAPI = new Hono<{ Bindings: Env }>()
                             });
                             lastSseCounterSeen = currentSseCounter;
                         }
-                        await stream.sleep(5000)
+                        const runtimeConfig = await peppersService(c.env, c.var.organizationID, c.var.memberID).getRuntimeConfigParams()
+                        await stream.sleep(runtimeConfig.sseUpdateSeconds * 1000);
                     } catch (error) {
                         // Handle individual loop iteration errors
                         console.error('Error in SSE loop iteration:', error);
@@ -113,7 +108,7 @@ export const PeppersAPI = new Hono<{ Bindings: Env }>()
                             break; // Break the loop if we can't write to the stream
                         }
                         // Wait a bit before retrying
-                        await stream.sleep(5000);
+                        await stream.sleep(5 * 1000);
                     }
                 }
             } catch (error) {

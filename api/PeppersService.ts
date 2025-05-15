@@ -1,4 +1,4 @@
-import {Pepper} from "../types";
+import {Pepper, RuntimeConfig} from "../types";
 import { v7 as uuidv7 } from 'uuid';
 import crypto from 'crypto';
 
@@ -60,20 +60,10 @@ class PeppersService {
     get = async (): Promise<Pepper[]> => {
         const peppers = await this.env.PeppersKV.get<Pepper[]>(this.organizationID, "json")
         if (!peppers || peppers.length === 0) {
-            // If no peppers exist, set the id counter to the number of default peppers.
-            await this.env.PeppersKV.put(this.organizationID + "_next_id", DEFAULT_PEPPERS.length.toString())
             return this.#set(DEFAULT_PEPPERS)
         }
         console.log(`Fetched ${peppers.length} peppers`)
         return peppers;
-    }
-
-    getSimplifiedPeppers = async (): Promise<Array<{pepperText: string, upvoteCount: number}>> => {
-        const peppers = await this.get();
-        return peppers.map(pepper => ({
-            pepperText: pepper.pepperText,
-            upvoteCount: pepper.upvotes.length
-        }));
     }
 
     #set = async (peppers: Pepper[]): Promise<Pepper[]> => {
@@ -90,8 +80,23 @@ class PeppersService {
     }
 
     getSseCounter = async (): Promise<string> => {
+        // Don't love this. This should use some other sync method, like connecting to a
+        // durable object, which allows us to synchronize the SSE counter across workers
+        // and avoid polling the KV store, which is slow to update / cache bust.
         const str = await this.env.PeppersKV.get(this.organizationID, "text")
         return crypto.createHash('sha256').update(str ?? "").digest('hex')
+    }
+
+    getRuntimeConfigParams = async (): Promise<RuntimeConfig> => {
+        const config = await this.env.PeppersKV.get<RuntimeConfig>(this.organizationID + "_runtime_config", "json")
+        if (!config) {
+            const defaultConfig: RuntimeConfig = {
+                sseUpdateSeconds: 20,
+            }
+            await this.env.PeppersKV.put(this.organizationID + "_runtime_config", JSON.stringify(defaultConfig))
+            return defaultConfig
+        }
+        return config
     }
 
     addPepper = async (pepperText: string): Promise<Pepper[]> => {
@@ -179,7 +184,6 @@ class PeppersService {
         //Nuke it all!
         await this.env.PeppersKV.delete(this.organizationID)
         await this.env.PeppersKV.delete(this.organizationID + "_sse_counter")
-        await this.env.PeppersKV.delete(this.organizationID + "_next_id")
         // First get (with no data for the org) resets the peppers to the hardcoded default`
         console.log(`Deleted ALL peppers`)
         return this.get()

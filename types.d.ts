@@ -14,6 +14,10 @@ export type Permissions = {
     'stytch.member': 'update.settings.roles';
 };
 
+export type RuntimeConfig = {
+    sseUpdateSeconds: number;
+}
+
 // Context from the auth process, extracted from the Stytch auth token JWT
 // and provided to the MCP Server as this.props
 type AuthenticationContext = {
