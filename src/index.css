@@ -2,7 +2,8 @@ body {
     margin: 0;
     min-height: 100vh;
     color: #1D1D1D;
-    background-color: #FBFAF9;
+    background-image: url("/offwhite_50.svg");
+    background-repeat: repeat;
 }
 
 @font-face {
@@ -37,6 +38,27 @@ main {
     max-width: 80vw;
     min-height: 40vh;
     margin-top: 2vh;
+}
+
+.nav-container {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    width: 80vw;
+    margin-top:1vh;
+
+    .stytch-wordmark {
+        height: 8vh;
+    }
+
+    nav {
+        margin: 0;
+        padding: 0;
+        margin-left: auto;
+        flex-wrap: wrap;
+    }
 }
 
 #title {
@@ -114,6 +136,7 @@ footer {
 
 button {
     border: none;
+    margin-left: 10px;
     padding: 10px 20px;
     border-radius: 5px;
     cursor: pointer;
@@ -277,12 +300,6 @@ button.tiny {
 
 .input-group {
     display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-
-    button {
-        margin-left: auto
-    }
 }
 
 .complete {

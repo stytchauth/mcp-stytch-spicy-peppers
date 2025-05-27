@@ -324,26 +324,38 @@ const PeppersRanking = ({stytchPermissions}: EditorProps) => {
                     </p>
                     <hr />
                     <div className="codes">
-                        <span className="qr-code-container">
+                        <span className="qr-code-container" onClick={() => window.open('https://stytch.com/', '_blank')}>
+                            <h4>Stytch Homepage:</h4>
+                            <QRCode
+                                value="https://stytch.com"
+                                size={300}
+                                qrStyle={"squares"}
+                                fgColor={"#b2d6de"}
+                                logoImage={"/stytch_qr.png"}
+                                removeQrCodeBehindLogo={true}
+                                ecLevel={"Q"}
+                            />
+                        </span>
+                        <span className="qr-code-container" onClick={() => window.open(window.location.origin, '_blank')}>
                             <h4>Spicy Peppers (this app):</h4>
                             <QRCode
                                 value={window.location.origin}
                                 size={300}
                                 qrStyle={"squares"}
                                 fgColor={"#660001"}
-                                logoImage={"/pepper.png"}
+                                logoImage={"/pepper_qr.png"}
                                 removeQrCodeBehindLogo={true}
                                 ecLevel={"Q"}
                             />
                         </span>
-                        <span className="qr-code-container">
+                        <span className="qr-code-container" onClick={() => window.open('https://playground.ai.cloudflare.com/', '_blank')}>
                             <h4>Cloudflare AI Playground:</h4>
                             <QRCode
                                 value="https://playground.ai.cloudflare.com/"
                                 size={300}
                                 qrStyle={"squares"}
                                 fgColor={"#66360d"}
-                                logoImage={"/cloudflare.png"}
+                                logoImage={"/cloudflare_qr.png"}
                                 removeQrCodeBehindLogo={true}
                                 ecLevel={"Q"}
                             />

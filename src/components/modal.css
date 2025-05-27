@@ -36,6 +36,10 @@
     text-align: center;
 }
 
+.qr-code-container {
+    cursor: pointer;
+}
+
 /* Close Button */
 .modal-close {
     position: absolute;

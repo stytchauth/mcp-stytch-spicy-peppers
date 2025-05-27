@@ -307,16 +307,19 @@ export const Nav = withStytchPermissions<Permissions, object>(
     if (!member) return null;
 
     return (
-        <nav>
-            <NavLink className={location.pathname === "/peppers" ? "active" : ""} to="/peppers">
-                <button className="primary">Spicy Peppers</button>
-            </NavLink>
-            {canSeeMemberTab() && <NavLink className={location.pathname === "/settings/members" ? "active" : ""} to="/settings/members">
-                <button className="primary">Administration</button>
-            </NavLink>}
-            <a className="logout" onClick={() => stytch.session.revoke()}>
-                <button className="primary logout"> Log Out</button>
-            </a>
-        </nav>
+        <span className="nav-container">
+            <img className="stytch-wordmark" src="/stytch_wordmark.svg" alt="Stytch Spicy Peppers" />
+            <nav>
+                <NavLink className={location.pathname === "/peppers" ? "active" : ""} to="/peppers">
+                    <button className="primary">Spicy Peppers</button>
+                </NavLink>
+                {canSeeMemberTab() && <NavLink className={location.pathname === "/settings/members" ? "active" : ""} to="/settings/members">
+                    <button className="primary">Administration</button>
+                </NavLink>}
+                <a className="logout" onClick={() => stytch.session.revoke()}>
+                    <button className="primary logout"> Log Out</button>
+                </a>
+            </nav>
+        </span>
     )
 })
