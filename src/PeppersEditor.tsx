@@ -328,7 +328,7 @@ const PeppersRanking = ({stytchPermissions}: EditorProps) => {
                             <h4>Stytch Homepage:</h4>
                             <QRCode
                                 value="https://stytch.com"
-                                size={300}
+                                size={250}
                                 qrStyle={"squares"}
                                 fgColor={"#b2d6de"}
                                 logoImage={"/stytch_qr.png"}
@@ -340,7 +340,7 @@ const PeppersRanking = ({stytchPermissions}: EditorProps) => {
                             <h4>Spicy Peppers (this app):</h4>
                             <QRCode
                                 value={window.location.origin}
-                                size={300}
+                                size={250}
                                 qrStyle={"squares"}
                                 fgColor={"#660001"}
                                 logoImage={"/pepper_qr.png"}
@@ -352,7 +352,7 @@ const PeppersRanking = ({stytchPermissions}: EditorProps) => {
                             <h4>Cloudflare AI Playground:</h4>
                             <QRCode
                                 value="https://playground.ai.cloudflare.com/"
-                                size={300}
+                                size={250}
                                 qrStyle={"squares"}
                                 fgColor={"#66360d"}
                                 logoImage={"/cloudflare_qr.png"}
