@@ -313,7 +313,7 @@ const PeppersRanking = ({stytchPermissions}: EditorProps) => {
                     <p>
                         Spicy Peppers is a demo application that shows how to
                         use Stytch to manage and vote on a list of "spicy
-                        peppers" (controversial opinions). It has both a web UI
+                        peppers" - hot takes or controversial opinions. It has both a web UI
                         (here!) and a MCP server running on Cloudflare at{" "}
                         <b>{window.location.origin}/sse</b> that you can connect
                         to with the Cloudflare{" "}
@@ -325,7 +325,7 @@ const PeppersRanking = ({stytchPermissions}: EditorProps) => {
                     <hr />
                     <div className="codes">
                         <span className="qr-code-container">
-                            <h4>Spicy Peppers:</h4>
+                            <h4>Spicy Peppers (this app):</h4>
                             <QRCode
                                 value={window.location.origin}
                                 size={300}
@@ -353,7 +353,7 @@ const PeppersRanking = ({stytchPermissions}: EditorProps) => {
 
                 <Modal isOpen={modalOpen} onClose={() => setModalOpen(false)}>
                     <form onSubmit={onAddPepper}>
-                        <h3>Create a new Spicy Pepper</h3>
+                        <h3>Create a new Spicy Pepper (hot take)</h3>
                         <p>What is a controversial opinion you have?</p>
                         <div className="input-group">
                             <input
@@ -374,7 +374,7 @@ const PeppersRanking = ({stytchPermissions}: EditorProps) => {
                 </Modal>
 
                 <h1 id="title">
-                    Spicy Peppers for {organization?.organization_name}
+                    Hot Takes ("Spicy Peppers") for {organization?.organization_name}
                     <button
                         className="text"
                         onClick={() => setInfoModalOpen(true)}

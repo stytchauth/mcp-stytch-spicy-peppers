@@ -114,7 +114,6 @@ footer {
 
 button {
     border: none;
-    margin-left: 10px;
     padding: 10px 20px;
     border-radius: 5px;
     cursor: pointer;
@@ -278,6 +277,12 @@ button.tiny {
 
 .input-group {
     display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+
+    button {
+        margin-left: auto
+    }
 }
 
 .complete {
